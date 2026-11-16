@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 
 import '../config/app_config.dart';
@@ -14,11 +16,8 @@ class ApiResponse {
 /// Thin wrapper around Dio: attaches the JWT, unwraps the response envelope and
 /// converts every failure into an [ApiException].
 class ApiClient {
-  ApiClient({
-    required TokenStorage tokenStorage,
-    required void Function() onUnauthorized,
-    Dio? dio,
-  }) : _dio = dio ?? Dio() {
+  ApiClient({required TokenStorage tokenStorage, required void Function() onUnauthorized, Dio? dio})
+    : _dio = dio ?? Dio() {
     _dio.options
       ..baseUrl = AppConfig.apiBaseUrl
       // Render's free tier can take ~50 s to wake up, so be generous.
@@ -49,11 +48,18 @@ class ApiClient {
   Future<ApiResponse> get(String path, {Map<String, dynamic>? query}) =>
       _send(() => _dio.get(path, queryParameters: query));
 
-  Future<ApiResponse> post(String path, {Object? data}) =>
-      _send(() => _dio.post(path, data: data));
+  Future<ApiResponse> post(String path, {Object? data}) => _send(() => _dio.post(path, data: data));
 
-  Future<ApiResponse> patch(String path, {Object? data}) =>
-      _send(() => _dio.patch(path, data: data));
+  Future<ApiResponse> patch(String path, {Object? data}) => _send(() => _dio.patch(path, data: data));
+
+  /// Sends [bytes] as the whole request body (e.g. a photo) with the given [contentType].
+  Future<ApiResponse> postBytes(String path, Uint8List bytes, {required String contentType}) => _send(
+    () => _dio.post(
+      path,
+      data: Stream.fromIterable([bytes]),
+      options: Options(contentType: contentType, headers: {Headers.contentLengthHeader: bytes.length}),
+    ),
+  );
 
   Future<ApiResponse> delete(String path) => _send(() => _dio.delete(path));
 

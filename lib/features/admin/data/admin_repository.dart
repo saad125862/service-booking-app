@@ -3,6 +3,7 @@ import '../../booking/domain/appointment.dart';
 import '../../booking/domain/payment_method.dart';
 import '../../discounts/domain/discount_request.dart';
 import '../domain/admin_service.dart';
+import 'image_picker.dart';
 import '../domain/dashboard.dart';
 import '../domain/sales_report.dart';
 
@@ -60,6 +61,12 @@ class AdminRepository {
         ? await _api.patch('/admin/services/$id', data: {'isActive': true})
         : await _api.delete('/admin/services/$id');
     return AdminService.fromJson(res.data as Map<String, dynamic>);
+  }
+
+  /// Uploads a photo and returns the public link to store as the service's `imageUrl`.
+  Future<String> uploadImage(PickedImage image) async {
+    final res = await _api.postBytes('/admin/uploads/image', image.bytes, contentType: image.mimeType);
+    return (res.data as Map<String, dynamic>)['url'] as String;
   }
 
   // ------------------------------------------------------------ custom fields

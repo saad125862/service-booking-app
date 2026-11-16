@@ -11,6 +11,7 @@ import '../domain/admin_service.dart';
 import 'admin_providers.dart';
 import 'widgets/dynamic_fields_form.dart';
 import 'widgets/field_editor_dialog.dart';
+import 'widgets/photo_field.dart';
 
 /// Add a service (`serviceId == null`) or edit one. The "Extra details" section is dynamic:
 /// it shows the custom fields admins have defined, and new ones can be added right here.
@@ -77,7 +78,7 @@ class _ServiceFormState extends ConsumerState<_ServiceForm> {
   late final _price = TextEditingController(text: _num(widget.existing?.price));
   late final _duration = TextEditingController(text: _num(widget.existing?.durationMinutes));
   late final _category = TextEditingController(text: widget.existing?.category ?? '');
-  late final _image = TextEditingController(text: widget.existing?.imageUrl ?? '');
+  late PhotoChoice _photo = PhotoChoice(url: widget.existing?.imageUrl);
   late bool _featured = widget.existing?.isFeatured ?? false;
   late bool _active = widget.existing?.isActive ?? true;
 
@@ -90,7 +91,7 @@ class _ServiceFormState extends ConsumerState<_ServiceForm> {
 
   @override
   void dispose() {
-    for (final c in [_name, _description, _price, _duration, _category, _image]) {
+    for (final c in [_name, _description, _price, _duration, _category]) {
       c.dispose();
     }
     super.dispose();
@@ -110,20 +111,24 @@ class _ServiceFormState extends ConsumerState<_ServiceForm> {
       _error = null;
     });
 
-    final body = <String, dynamic>{
-      'name': _name.text.trim(),
-      'description': _description.text.trim(),
-      'price': num.parse(_price.text.trim()),
-      'durationMinutes': int.parse(_duration.text.trim()),
-      'category': _category.text.trim(),
-      'imageUrl': _image.text.trim(),
-      'isFeatured': _featured,
-      'isActive': _active,
-      'attributes': _dynamicKey.currentState?.values() ?? const <String, dynamic>{},
-    };
-
     try {
       final repo = ref.read(adminRepositoryProvider);
+
+      // A photo chosen from the device is uploaded now; the service then points to its link.
+      final photoUrl = _photo.picked != null ? await repo.uploadImage(_photo.picked!) : (_photo.url ?? '');
+
+      final body = <String, dynamic>{
+        'name': _name.text.trim(),
+        'description': _description.text.trim(),
+        'price': num.parse(_price.text.trim()),
+        'durationMinutes': int.parse(_duration.text.trim()),
+        'category': _category.text.trim(),
+        'imageUrl': photoUrl,
+        'isFeatured': _featured,
+        'isActive': _active,
+        'attributes': _dynamicKey.currentState?.values() ?? const <String, dynamic>{},
+      };
+
       final saved = _editing ? await repo.updateService(widget.existing!.id, body) : await repo.createService(body);
       ref.invalidate(adminServicesProvider);
       ref.invalidate(adminServiceProvider(saved.id));
@@ -247,24 +252,8 @@ class _ServiceFormState extends ConsumerState<_ServiceForm> {
                         ],
                       ),
                     ),
-                  AppTextField(
-                    controller: _image,
-                    label: 'Photo link (optional)',
-                    hint: 'https://…',
-                    enabled: !_saving,
-                    keyboardType: TextInputType.url,
-                    validator: (v) {
-                      final t = (v ?? '').trim();
-                      if (t.isEmpty) return null;
-                      final uri = Uri.tryParse(t);
-                      return uri != null &&
-                              uri.hasScheme &&
-                              (uri.scheme == 'http' || uri.scheme == 'https') &&
-                              uri.host.isNotEmpty
-                          ? null
-                          : 'Enter a full http(s) link';
-                    },
-                  ),
+                  PhotoField(choice: _photo, enabled: !_saving, onChanged: (c) => setState(() => _photo = c)),
+                  const SizedBox(height: 8),
                   SwitchListTile(
                     contentPadding: EdgeInsets.zero,
                     title: const Text('Featured'),

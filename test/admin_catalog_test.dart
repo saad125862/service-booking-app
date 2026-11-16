@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -7,6 +10,7 @@ import 'package:seba_app/core/network/api_exception.dart';
 import 'package:seba_app/core/storage/token_storage.dart';
 import 'package:seba_app/core/widgets/app_button.dart';
 import 'package:seba_app/features/admin/data/admin_repository.dart';
+import 'package:seba_app/features/admin/data/image_picker.dart';
 import 'package:seba_app/features/admin/domain/admin_service.dart';
 import 'package:seba_app/features/admin/presentation/admin_fields_screen.dart';
 import 'package:seba_app/features/admin/presentation/admin_payments_screen.dart';
@@ -91,6 +95,7 @@ class FakeCatalogRepository extends AdminRepository {
   final List<Map<String, dynamic>> createdMethods = [];
   final List<Map<String, dynamic>> methodUpdates = [];
   final List<String> fieldActiveCalls = [];
+  final List<PickedImage> uploaded = [];
 
   @override
   Future<List<AdminService>> services({String? search, String status = 'all'}) async {
@@ -120,6 +125,12 @@ class FakeCatalogRepository extends AdminRepository {
   Future<AdminService> setServiceActive(String id, bool active) async {
     activeCalls.add('$id:$active');
     return _service(id: id, active: active);
+  }
+
+  @override
+  Future<String> uploadImage(PickedImage image) async {
+    uploaded.add(image);
+    return 'https://api.test/media/uploaded-1';
   }
 
   @override
@@ -168,7 +179,7 @@ class FakeCatalogRepository extends AdminRepository {
   }
 }
 
-Widget _app(FakeCatalogRepository repo, {required String start}) {
+Widget _app(FakeCatalogRepository repo, {required String start, Future<PickedImage?> Function()? picker}) {
   final router = GoRouter(
     initialLocation: start,
     routes: [
@@ -188,7 +199,11 @@ Widget _app(FakeCatalogRepository repo, {required String start}) {
     ],
   );
   return ProviderScope(
-    overrides: [adminRepositoryProvider.overrideWithValue(repo), unreadCountProvider.overrideWith(FixedUnread.new)],
+    overrides: [
+      adminRepositoryProvider.overrideWithValue(repo),
+      unreadCountProvider.overrideWith(FixedUnread.new),
+      if (picker != null) imagePickerProvider.overrideWithValue(picker),
+    ],
     child: MaterialApp.router(routerConfig: router),
   );
 }
@@ -408,6 +423,144 @@ void main() {
       await tester.tap(find.text('Add field'));
       await tester.pumpAndSettle();
       expect(repo.createdFields.single['options'], ['Private', 'Shared']);
+    });
+  });
+
+  group('Service photo', () {
+    final png = base64Decode(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+    );
+
+    Future<void> fillBasics(WidgetTester tester) async {
+      Future<void> type(String label, String text) async {
+        await tester.enterText(find.widgetWithText(TextFormField, label), text);
+      }
+
+      await type('Service name *', 'Hot Stone Massage');
+      await type('Description *', 'Heated stones melt away deep tension.');
+      await type('Price (৳) *', '3200');
+      await type('Duration (min) *', '75');
+      await type('Category *', 'Wellness');
+      await type('Prep note *', 'Shower first');
+    }
+
+    testWidgets('uses a file picker instead of a link', (tester) async {
+      _tall(tester);
+      await tester.pumpWidget(_app(FakeCatalogRepository(), start: '/admin/services/new'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Photo link (optional)'), findsNothing);
+      expect(find.text('Photo (optional)'), findsOneWidget);
+      expect(find.text('Choose photo'), findsOneWidget);
+      expect(find.text('No photo yet'), findsOneWidget);
+    });
+
+    testWidgets('a chosen photo is previewed, uploaded on save and its link sent with the service', (tester) async {
+      _tall(tester);
+      final repo = FakeCatalogRepository();
+      await tester.pumpWidget(_app(
+        repo,
+        start: '/admin/services/new',
+        picker: () async => PickedImage(name: 'stones.png', bytes: png, mimeType: 'image/png'),
+      ));
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Choose photo'));
+      await tester.tap(find.text('Choose photo'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('stones.png'), findsOneWidget);
+      expect(find.text('Change photo'), findsOneWidget);
+      expect(find.byTooltip('Remove photo'), findsOneWidget);
+      expect(repo.uploaded, isEmpty); // nothing is uploaded until the service is saved
+
+      await fillBasics(tester);
+      await tester.ensureVisible(find.widgetWithText(AppButton, 'Add service'));
+      await tester.tap(find.widgetWithText(AppButton, 'Add service'));
+      await tester.pumpAndSettle();
+
+      expect(repo.uploaded.single.mimeType, 'image/png');
+      expect(repo.created.single['imageUrl'], 'https://api.test/media/uploaded-1');
+    });
+
+    testWidgets('a service without a photo is saved with an empty photo link', (tester) async {
+      _tall(tester);
+      final repo = FakeCatalogRepository();
+      await tester.pumpWidget(_app(repo, start: '/admin/services/new'));
+      await tester.pumpAndSettle();
+      await fillBasics(tester);
+      await tester.ensureVisible(find.widgetWithText(AppButton, 'Add service'));
+      await tester.tap(find.widgetWithText(AppButton, 'Add service'));
+      await tester.pumpAndSettle();
+
+      expect(repo.uploaded, isEmpty);
+      expect(repo.created.single['imageUrl'], '');
+    });
+
+    testWidgets('editing keeps the current photo unless it is changed or removed', (tester) async {
+      _tall(tester);
+      AdminService withPhoto() => AdminService(
+            id: 's1',
+            name: 'Swedish Massage',
+            description: 'A relaxing full-body massage.',
+            price: 2500,
+            durationMinutes: 60,
+            category: 'Wellness',
+            isFeatured: false,
+            isActive: true,
+            imageUrl: 'https://api.test/media/current',
+            attributeValues: const {'prep_note': 'x'},
+          );
+
+      final keep = FakeCatalogRepository(services: [withPhoto()]);
+      await tester.pumpWidget(_app(keep, start: '/admin/services/s1'));
+      await tester.pumpAndSettle();
+      expect(find.text('Change photo'), findsOneWidget);
+      await tester.ensureVisible(find.text('Save changes'));
+      await tester.tap(find.text('Save changes'));
+      await tester.pumpAndSettle();
+      expect(keep.updated.single['imageUrl'], 'https://api.test/media/current');
+
+      final remove = FakeCatalogRepository(services: [withPhoto()]);
+      await tester.pumpWidget(_app(remove, start: '/admin/services/s1'));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byTooltip('Remove photo'));
+      await tester.tap(find.byTooltip('Remove photo'));
+      await tester.pumpAndSettle();
+      expect(find.text('Choose photo'), findsOneWidget);
+      await tester.ensureVisible(find.text('Save changes'));
+      await tester.tap(find.text('Save changes'));
+      await tester.pumpAndSettle();
+      expect(remove.updated.single['imageUrl'], '');
+    });
+
+    testWidgets('shows why a file cannot be used', (tester) async {
+      _tall(tester);
+      await tester.pumpWidget(_app(
+        FakeCatalogRepository(),
+        start: '/admin/services/new',
+        picker: () async => throw const ImageProblem('Choose a JPG, PNG or WebP photo.'),
+      ));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Choose photo'));
+      await tester.tap(find.text('Choose photo'));
+      await tester.pumpAndSettle();
+      expect(find.text('Choose a JPG, PNG or WebP photo.'), findsOneWidget);
+      expect(find.text('Choose photo'), findsOneWidget); // still no photo
+    });
+
+    test('validateImage checks size and the real file type', () {
+      expect(validateImage('a.png', png).mimeType, 'image/png');
+      expect(validateImage('a.jpg', Uint8List.fromList([0xff, 0xd8, 0xff, 0xe0, 0, 0])).mimeType, 'image/jpeg');
+      final webp = Uint8List.fromList([...'RIFF'.codeUnits, 4, 0, 0, 0, ...'WEBP'.codeUnits, 0, 0]);
+      expect(validateImage('a.webp', webp).mimeType, 'image/webp');
+
+      expect(() => validateImage('notes.png', Uint8List.fromList('hello world'.codeUnits)), throwsA(isA<ImageProblem>()));
+      expect(() => validateImage('empty.png', Uint8List(0)), throwsA(isA<ImageProblem>()));
+      expect(
+        () => validateImage('huge.jpg', Uint8List.fromList([0xff, 0xd8, 0xff, ...List.filled(maxImageBytes, 0)])),
+        throwsA(isA<ImageProblem>().having((e) => e.message, 'message', contains('5 MB'))),
+      );
+      expect(PickedImage(name: 'a', bytes: Uint8List(2048), mimeType: 'image/png').sizeLabel, '2 KB');
     });
   });
 
