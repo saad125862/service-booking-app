@@ -42,7 +42,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
     try {
       await ref.read(authProvider.notifier).login(email: _email.text, password: _password.text);
-      // The router redirects to the home screen once the auth state changes.
+      // The router redirects to the right home screen once the auth state changes.
     } on ApiException catch (e) {
       if (mounted) setState(() => _error = e.message);
     } finally {
@@ -50,14 +50,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
-  void _useDemo() {
-    _email.text = AppConfig.demoEmail;
-    _password.text = AppConfig.demoPassword;
-    setState(() => _error = null);
+  /// One-tap sign in for the seeded demo accounts.
+  Future<void> _quickSignIn(String email, String password) {
+    _email.text = email;
+    _password.text = password;
+    return _submit();
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return AuthScaffold(
       title: 'Welcome back',
       subtitle: 'Sign in to book and manage your services.',
@@ -92,12 +95,45 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ),
               const SizedBox(height: 24),
               AppButton(label: 'Sign in', onPressed: _submit, loading: _submitting),
-              const SizedBox(height: 12),
-              TextButton(
-                onPressed: _submitting ? null : _useDemo,
-                child: const Text('Use the demo account'),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  const Expanded(child: Divider()),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Text(
+                      'Quick sign in (demo)',
+                      style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                    ),
+                  ),
+                  const Expanded(child: Divider()),
+                ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _submitting
+                          ? null
+                          : () => _quickSignIn(AppConfig.demoCustomerEmail, AppConfig.demoCustomerPassword),
+                      icon: const Icon(Icons.person_outline),
+                      label: const Text('Customer'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _submitting
+                          ? null
+                          : () => _quickSignIn(AppConfig.demoAdminEmail, AppConfig.demoAdminPassword),
+                      icon: const Icon(Icons.admin_panel_settings_outlined),
+                      label: const Text('Admin'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
               Wrap(
                 alignment: WrapAlignment.center,
                 crossAxisAlignment: WrapCrossAlignment.center,

@@ -12,6 +12,9 @@ class AppConfig {
   );
 
   static const String appName = 'Seba';
-  static const String demoEmail = 'demo@example.com';
-  static const String demoPassword = 'Demo@1234';
+  // Demo accounts for reviewers (seeded by the backend); used by the quick sign-in buttons.
+  static const String demoCustomerEmail = 'demo@example.com';
+  static const String demoCustomerPassword = 'Demo@1234';
+  static const String demoAdminEmail = 'admin@example.com';
+  static const String demoAdminPassword = 'Admin@1234';
 }
