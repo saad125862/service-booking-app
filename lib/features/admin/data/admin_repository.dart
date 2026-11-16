@@ -1,5 +1,7 @@
 import '../../../core/network/api_client.dart';
 import '../../booking/domain/appointment.dart';
+import '../../booking/domain/payment_method.dart';
+import '../domain/admin_service.dart';
 import '../domain/dashboard.dart';
 
 /// A page of bookings.
@@ -26,6 +28,77 @@ class AdminRepository {
     return DashboardData.fromJson(res.data as Map<String, dynamic>);
   }
 
+  // ------------------------------------------------------------------ services
+  Future<List<AdminService>> services({String? search, String status = 'all'}) async {
+    final res = await _api.get(
+      '/admin/services',
+      query: {if (search != null && search.trim().isNotEmpty) 'search': search.trim(), 'status': status, 'limit': 100},
+    );
+    return [for (final s in res.data as List) AdminService.fromJson(s as Map<String, dynamic>)];
+  }
+
+  Future<AdminService> service(String id) async {
+    final res = await _api.get('/admin/services/$id');
+    return AdminService.fromJson(res.data as Map<String, dynamic>);
+  }
+
+  Future<AdminService> createService(Map<String, dynamic> body) async {
+    final res = await _api.post('/admin/services', data: body);
+    return AdminService.fromJson(res.data as Map<String, dynamic>);
+  }
+
+  Future<AdminService> updateService(String id, Map<String, dynamic> body) async {
+    final res = await _api.patch('/admin/services/$id', data: body);
+    return AdminService.fromJson(res.data as Map<String, dynamic>);
+  }
+
+  /// Hides a service from customers (never a hard delete) or shows it again.
+  Future<AdminService> setServiceActive(String id, bool active) async {
+    final res = active
+        ? await _api.patch('/admin/services/$id', data: {'isActive': true})
+        : await _api.delete('/admin/services/$id');
+    return AdminService.fromJson(res.data as Map<String, dynamic>);
+  }
+
+  // ------------------------------------------------------------ custom fields
+  Future<List<ServiceField>> fields() async {
+    final res = await _api.get('/admin/service-fields');
+    return [for (final f in res.data as List) ServiceField.fromJson(f as Map<String, dynamic>)];
+  }
+
+  Future<ServiceField> createField(Map<String, dynamic> body) async {
+    final res = await _api.post('/admin/service-fields', data: body);
+    return ServiceField.fromJson(res.data as Map<String, dynamic>);
+  }
+
+  Future<ServiceField> updateField(String id, Map<String, dynamic> body) async {
+    final res = await _api.patch('/admin/service-fields/$id', data: body);
+    return ServiceField.fromJson(res.data as Map<String, dynamic>);
+  }
+
+  Future<ServiceField> setFieldActive(String id, bool active) async {
+    final res = active
+        ? await _api.patch('/admin/service-fields/$id', data: {'isActive': true})
+        : await _api.delete('/admin/service-fields/$id');
+    return ServiceField.fromJson(res.data as Map<String, dynamic>);
+  }
+
+  // ---------------------------------------------------------- payment methods
+  Future<List<PaymentMethod>> paymentMethods() async {
+    final res = await _api.get('/admin/payment-methods');
+    return [for (final m in res.data as List) PaymentMethod.fromJson(m as Map<String, dynamic>)];
+  }
+
+  Future<PaymentMethod> createPaymentMethod(Map<String, dynamic> body) async {
+    final res = await _api.post('/admin/payment-methods', data: body);
+    return PaymentMethod.fromJson(res.data as Map<String, dynamic>);
+  }
+
+  Future<PaymentMethod> updatePaymentMethod(String id, Map<String, dynamic> body) async {
+    final res = await _api.patch('/admin/payment-methods/$id', data: body);
+    return PaymentMethod.fromJson(res.data as Map<String, dynamic>);
+  }
+
   // ------------------------------------------------------------------ bookings
   Future<BookingsPage> bookings({
     String? status,
@@ -34,13 +107,16 @@ class AdminRepository {
     int page = 1,
     int limit = 20,
   }) async {
-    final res = await _api.get('/admin/appointments', query: {
-      'status': ?status,
-      'paymentStatus': ?paymentStatus,
-      if (search != null && search.trim().isNotEmpty) 'search': search.trim(),
-      'page': page,
-      'limit': limit,
-    });
+    final res = await _api.get(
+      '/admin/appointments',
+      query: {
+        'status': ?status,
+        'paymentStatus': ?paymentStatus,
+        if (search != null && search.trim().isNotEmpty) 'search': search.trim(),
+        'page': page,
+        'limit': limit,
+      },
+    );
     final meta = res.meta ?? const {};
     return BookingsPage(
       items: [for (final a in res.data as List) Appointment.fromJson(a as Map<String, dynamic>)],

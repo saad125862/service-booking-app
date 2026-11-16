@@ -5,8 +5,12 @@ import 'package:go_router/go_router.dart';
 import '../../features/admin/presentation/admin_booking_detail_screen.dart';
 import '../../features/admin/presentation/admin_bookings_screen.dart';
 import '../../features/admin/presentation/admin_dashboard_screen.dart';
+import '../../features/admin/presentation/admin_fields_screen.dart';
+import '../../features/admin/presentation/admin_payments_screen.dart';
 import '../../features/admin/presentation/admin_placeholder_screen.dart';
+import '../../features/admin/presentation/admin_services_screen.dart';
 import '../../features/admin/presentation/admin_shell.dart';
+import '../../features/admin/presentation/service_form_screen.dart';
 import '../../features/assistant/presentation/assistant_screen.dart';
 import '../../features/auth/domain/user.dart';
 import '../../features/auth/presentation/auth_controller.dart';
@@ -71,11 +75,8 @@ final routerProvider = Provider<GoRouter>((ref) {
   final router = GoRouter(
     initialLocation: '/splash',
     refreshListenable: refresh,
-    redirect: (context, state) => appRedirect(
-      ref.read(authProvider),
-      state.matchedLocation,
-      from: state.uri.queryParameters['from'],
-    ),
+    redirect: (context, state) =>
+        appRedirect(ref.read(authProvider), state.matchedLocation, from: state.uri.queryParameters['from']),
     routes: [
       GoRoute(path: '/splash', builder: (_, _) => const SplashScreen()),
       GoRoute(path: '/login', builder: (_, _) => const LoginScreen()),
@@ -83,98 +84,94 @@ final routerProvider = Provider<GoRouter>((ref) {
       StatefulShellRoute.indexedStack(
         builder: (_, _, shell) => AdminShell(shell: shell),
         branches: [
-          StatefulShellBranch(routes: [GoRoute(path: '/admin', builder: (_, _) => const AdminDashboardScreen())]),
-          StatefulShellBranch(routes: [
-            GoRoute(
-              path: '/admin/bookings',
-              builder: (_, _) => const AdminBookingsScreen(),
-              routes: [
-                GoRoute(
-                  path: ':id',
-                  builder: (_, state) => AdminBookingDetailScreen(
-                    bookingId: state.pathParameters['id']!,
-                    initial: state.extra as Appointment?,
+          StatefulShellBranch(
+            routes: [GoRoute(path: '/admin', builder: (_, _) => const AdminDashboardScreen())],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/admin/bookings',
+                builder: (_, _) => const AdminBookingsScreen(),
+                routes: [
+                  GoRoute(
+                    path: ':id',
+                    builder: (_, state) => AdminBookingDetailScreen(
+                      bookingId: state.pathParameters['id']!,
+                      initial: state.extra as Appointment?,
+                    ),
                   ),
+                ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/admin/services',
+                builder: (_, _) => const AdminServicesScreen(),
+                routes: [
+                  // `new` must come before `:id` so it is not read as an id.
+                  GoRoute(path: 'new', builder: (_, _) => const ServiceFormScreen()),
+                  GoRoute(
+                    path: ':id',
+                    builder: (_, state) => ServiceFormScreen(serviceId: state.pathParameters['id']),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/admin/discounts',
+                builder: (_, _) => const AdminPlaceholderScreen(
+                  title: 'Discount requests',
+                  icon: Icons.local_offer_outlined,
+                  message: 'Approve or decline customers\' discount requests.',
                 ),
-              ],
-            ),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(
-              path: '/admin/services',
-              builder: (_, _) => const AdminPlaceholderScreen(
-                title: 'Services',
-                icon: Icons.spa_outlined,
-                message: 'Add and edit services with the dynamic form.',
               ),
-            ),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(
-              path: '/admin/discounts',
-              builder: (_, _) => const AdminPlaceholderScreen(
-                title: 'Discount requests',
-                icon: Icons.local_offer_outlined,
-                message: 'Approve or decline customers\' discount requests.',
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/admin/reports',
+                builder: (_, _) => const AdminPlaceholderScreen(
+                  title: 'Sales reports',
+                  icon: Icons.bar_chart_outlined,
+                  message: 'Revenue by day, service, category and payment method.',
+                ),
               ),
-            ),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(
-              path: '/admin/reports',
-              builder: (_, _) => const AdminPlaceholderScreen(
-                title: 'Sales reports',
-                icon: Icons.bar_chart_outlined,
-                message: 'Revenue by day, service, category and payment method.',
-              ),
-            ),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(
-              path: '/admin/payments',
-              builder: (_, _) => const AdminPlaceholderScreen(
-                title: 'Payment options',
-                icon: Icons.account_balance_wallet_outlined,
-                message: 'Manage cash, card, bKash, Nagad and more.',
-              ),
-            ),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(
-              path: '/admin/fields',
-              builder: (_, _) => const AdminPlaceholderScreen(
-                title: 'Custom fields',
-                icon: Icons.tune_outlined,
-                message: 'Extra fields for the add-service form.',
-              ),
-            ),
-          ]),
-          StatefulShellBranch(routes: [GoRoute(path: '/admin/profile', builder: (_, _) => const ProfileScreen())]),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [GoRoute(path: '/admin/payments', builder: (_, _) => const AdminPaymentsScreen())],
+          ),
+          StatefulShellBranch(
+            routes: [GoRoute(path: '/admin/fields', builder: (_, _) => const AdminFieldsScreen())],
+          ),
+          StatefulShellBranch(
+            routes: [GoRoute(path: '/admin/profile', builder: (_, _) => const ProfileScreen())],
+          ),
         ],
       ),
       GoRoute(path: '/notifications', builder: (_, _) => const NotificationsScreen()),
       GoRoute(
         path: '/service/:id',
-        builder: (_, state) => ServiceDetailsScreen(
-          serviceId: state.pathParameters['id']!,
-          initial: state.extra as Service?,
-        ),
+        builder: (_, state) =>
+            ServiceDetailsScreen(serviceId: state.pathParameters['id']!, initial: state.extra as Service?),
         routes: [
           GoRoute(
             path: 'book',
-            builder: (_, state) => BookingScreen(
-              serviceId: state.pathParameters['id']!,
-              service: state.extra as Service?,
-            ),
+            builder: (_, state) =>
+                BookingScreen(serviceId: state.pathParameters['id']!, service: state.extra as Service?),
           ),
         ],
       ),
       GoRoute(
         path: '/booking/:id',
-        builder: (_, state) => BookingDetailsScreen(
-          appointmentId: state.pathParameters['id']!,
-          initial: state.extra as Appointment?,
-        ),
+        builder: (_, state) =>
+            BookingDetailsScreen(appointmentId: state.pathParameters['id']!, initial: state.extra as Appointment?),
         routes: [
           GoRoute(
             path: 'confirmed',
@@ -188,10 +185,18 @@ final routerProvider = Provider<GoRouter>((ref) {
       StatefulShellRoute.indexedStack(
         builder: (_, _, shell) => HomeShell(shell: shell),
         branches: [
-          StatefulShellBranch(routes: [GoRoute(path: '/', builder: (_, _) => const HomeScreen())]),
-          StatefulShellBranch(routes: [GoRoute(path: '/bookings', builder: (_, _) => const BookingsScreen())]),
-          StatefulShellBranch(routes: [GoRoute(path: '/assistant', builder: (_, _) => const AssistantScreen())]),
-          StatefulShellBranch(routes: [GoRoute(path: '/profile', builder: (_, _) => const ProfileScreen())]),
+          StatefulShellBranch(
+            routes: [GoRoute(path: '/', builder: (_, _) => const HomeScreen())],
+          ),
+          StatefulShellBranch(
+            routes: [GoRoute(path: '/bookings', builder: (_, _) => const BookingsScreen())],
+          ),
+          StatefulShellBranch(
+            routes: [GoRoute(path: '/assistant', builder: (_, _) => const AssistantScreen())],
+          ),
+          StatefulShellBranch(
+            routes: [GoRoute(path: '/profile', builder: (_, _) => const ProfileScreen())],
+          ),
         ],
       ),
     ],

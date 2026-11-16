@@ -3,14 +3,35 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/providers.dart';
 import '../../booking/domain/appointment.dart';
+import '../../booking/domain/payment_method.dart';
+import '../domain/admin_service.dart';
 import '../data/admin_repository.dart';
 import '../domain/dashboard.dart';
 
-final adminRepositoryProvider =
-    Provider<AdminRepository>((ref) => AdminRepository(ref.watch(apiClientProvider)));
+final adminRepositoryProvider = Provider<AdminRepository>((ref) => AdminRepository(ref.watch(apiClientProvider)));
 
 final adminDashboardProvider = FutureProvider.autoDispose<DashboardData>(
   (ref) => ref.read(adminRepositoryProvider).dashboard(),
+);
+
+// ----------------------------------------------------------------- services
+typedef AdminServiceQuery = ({String search, String status});
+
+final adminServicesProvider = FutureProvider.autoDispose.family<List<AdminService>, AdminServiceQuery>(
+  (ref, q) => ref.read(adminRepositoryProvider).services(search: q.search, status: q.status),
+);
+
+final adminServiceProvider = FutureProvider.autoDispose.family<AdminService, String>(
+  (ref, id) => ref.read(adminRepositoryProvider).service(id),
+);
+
+/// Custom field definitions (including inactive ones; the form uses the active ones).
+final adminFieldsProvider = FutureProvider.autoDispose<List<ServiceField>>(
+  (ref) => ref.read(adminRepositoryProvider).fields(),
+);
+
+final adminPaymentMethodsProvider = FutureProvider.autoDispose<List<PaymentMethod>>(
+  (ref) => ref.read(adminRepositoryProvider).paymentMethods(),
 );
 
 // ----------------------------------------------------------------- bookings
@@ -21,11 +42,7 @@ class AdminBookingFilters {
   final String? paymentStatus;
   final String search;
 
-  AdminBookingFilters copyWith({
-    String? Function()? status,
-    String? Function()? paymentStatus,
-    String? search,
-  }) =>
+  AdminBookingFilters copyWith({String? Function()? status, String? Function()? paymentStatus, String? search}) =>
       AdminBookingFilters(
         status: status != null ? status() : this.status,
         paymentStatus: paymentStatus != null ? paymentStatus() : this.paymentStatus,
@@ -58,8 +75,9 @@ class AdminBookingFiltersNotifier extends Notifier<AdminBookingFilters> {
   void clear() => state = const AdminBookingFilters();
 }
 
-final adminBookingFiltersProvider =
-    NotifierProvider<AdminBookingFiltersNotifier, AdminBookingFilters>(AdminBookingFiltersNotifier.new);
+final adminBookingFiltersProvider = NotifierProvider<AdminBookingFiltersNotifier, AdminBookingFilters>(
+  AdminBookingFiltersNotifier.new,
+);
 
 class AdminBookingsState {
   const AdminBookingsState({
@@ -87,15 +105,14 @@ class AdminBookingsState {
     int? total,
     bool? loadingMore,
     String? Function()? loadMoreError,
-  }) =>
-      AdminBookingsState(
-        items: items ?? this.items,
-        page: page ?? this.page,
-        totalPages: totalPages ?? this.totalPages,
-        total: total ?? this.total,
-        loadingMore: loadingMore ?? this.loadingMore,
-        loadMoreError: loadMoreError != null ? loadMoreError() : this.loadMoreError,
-      );
+  }) => AdminBookingsState(
+    items: items ?? this.items,
+    page: page ?? this.page,
+    totalPages: totalPages ?? this.totalPages,
+    total: total ?? this.total,
+    loadingMore: loadingMore ?? this.loadingMore,
+    loadMoreError: loadMoreError != null ? loadMoreError() : this.loadMoreError,
+  );
 }
 
 /// Bookings for the current filters (reloads when they change), with paging.
@@ -105,12 +122,9 @@ class AdminBookingsController extends AsyncNotifier<AdminBookingsState> {
   @override
   Future<AdminBookingsState> build() async {
     final f = ref.watch(adminBookingFiltersProvider);
-    final page = await ref.read(adminRepositoryProvider).bookings(
-          status: f.status,
-          paymentStatus: f.paymentStatus,
-          search: f.search,
-          limit: pageSize,
-        );
+    final page = await ref
+        .read(adminRepositoryProvider)
+        .bookings(status: f.status, paymentStatus: f.paymentStatus, search: f.search, limit: pageSize);
     return AdminBookingsState(items: page.items, page: page.page, totalPages: page.totalPages, total: page.total);
   }
 
@@ -120,7 +134,9 @@ class AdminBookingsController extends AsyncNotifier<AdminBookingsState> {
     final f = ref.read(adminBookingFiltersProvider);
     state = AsyncData(current.copyWith(loadingMore: true, loadMoreError: () => null));
     try {
-      final next = await ref.read(adminRepositoryProvider).bookings(
+      final next = await ref
+          .read(adminRepositoryProvider)
+          .bookings(
             status: f.status,
             paymentStatus: f.paymentStatus,
             search: f.search,
@@ -128,13 +144,15 @@ class AdminBookingsController extends AsyncNotifier<AdminBookingsState> {
             limit: pageSize,
           );
       if (ref.read(adminBookingFiltersProvider) != f) return; // filters changed meanwhile
-      state = AsyncData(current.copyWith(
-        items: [...current.items, ...next.items],
-        page: next.page,
-        totalPages: next.totalPages,
-        total: next.total,
-        loadingMore: false,
-      ));
+      state = AsyncData(
+        current.copyWith(
+          items: [...current.items, ...next.items],
+          page: next.page,
+          totalPages: next.totalPages,
+          total: next.total,
+          loadingMore: false,
+        ),
+      );
     } on ApiException catch (e) {
       if (ref.read(adminBookingFiltersProvider) != f) return;
       state = AsyncData(current.copyWith(loadingMore: false, loadMoreError: () => e.message));
@@ -142,8 +160,9 @@ class AdminBookingsController extends AsyncNotifier<AdminBookingsState> {
   }
 }
 
-final adminBookingsProvider =
-    AsyncNotifierProvider<AdminBookingsController, AdminBookingsState>(AdminBookingsController.new);
+final adminBookingsProvider = AsyncNotifierProvider<AdminBookingsController, AdminBookingsState>(
+  AdminBookingsController.new,
+);
 
 final adminBookingProvider = FutureProvider.autoDispose.family<Appointment, String>(
   (ref, id) => ref.read(adminRepositoryProvider).booking(id),

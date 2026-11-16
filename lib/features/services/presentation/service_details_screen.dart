@@ -28,9 +28,7 @@ class ServiceDetailsScreen extends ConsumerWidget {
         appBar: AppBar(),
         body: detail.hasError
             ? ErrorView(
-                message: detail.error is ApiException
-                    ? (detail.error as ApiException).message
-                    : 'Please try again.',
+                message: detail.error is ApiException ? (detail.error as ApiException).message : 'Please try again.',
                 onRetry: () => ref.invalidate(serviceDetailProvider(serviceId)),
               )
             : const LoadingView(),
@@ -71,9 +69,7 @@ class _DetailsView extends StatelessWidget {
                     ),
                   ),
                 ),
-                flexibleSpace: FlexibleSpaceBar(
-                  background: ServiceImage(url: service.imageUrl),
-                ),
+                flexibleSpace: FlexibleSpaceBar(background: ServiceImage(url: service.imageUrl)),
               ),
               SliverToBoxAdapter(
                 child: Padding(
@@ -135,12 +131,62 @@ class _DetailsView extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 24),
-                      Text('About this service', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
+                      Text(
+                        'About this service',
+                        style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+                      ),
                       const SizedBox(height: 8),
                       Text(
                         service.description,
                         style: theme.textTheme.bodyLarge?.copyWith(height: 1.5, color: scheme.onSurfaceVariant),
                       ),
+                      if (service.attributes.isNotEmpty) ...[
+                        const SizedBox(height: 24),
+                        Text('Good to know', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
+                        const SizedBox(height: 8),
+                        for (final a in service.attributes)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 6),
+                            child: a.isLong
+                                ? Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        a.label,
+                                        style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        a.display,
+                                        style: theme.textTheme.bodyMedium?.copyWith(
+                                          height: 1.4,
+                                          color: scheme.onSurfaceVariant,
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                : Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                        flex: 2,
+                                        child: Text(
+                                          a.label,
+                                          style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        flex: 3,
+                                        child: Text(
+                                          a.display,
+                                          textAlign: TextAlign.end,
+                                          style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                          ),
+                      ],
                     ],
                   ),
                 ),
