@@ -11,8 +11,8 @@ enum ServiceSort {
   final String label;
 }
 
-/// Highest price the filter slider offers; a maxPrice at this value means "no limit".
-const double kPriceFilterCeiling = 200;
+/// Highest price (in BDT) the filter slider offers; a maxPrice at this value means "no limit".
+const double kPriceFilterCeiling = 20000;
 
 /// Immutable search/filter state for the services list.
 class ServiceFilters {

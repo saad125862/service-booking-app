@@ -3,10 +3,10 @@ import 'package:intl/intl.dart';
 class Formatters {
   const Formatters._();
 
-  /// 60 -> "$60", 45.5 -> "$45.50".
+  /// Prices are in Bangladeshi taka (BDT): 2500 -> "৳2,500", 45.5 -> "৳45.50".
   static String price(num value) {
     final whole = value == value.roundToDouble();
-    return NumberFormat.currency(symbol: r'$', decimalDigits: whole ? 0 : 2).format(value);
+    return NumberFormat.currency(locale: 'en_US', symbol: '৳', decimalDigits: whole ? 0 : 2).format(value);
   }
 
   /// 45 -> "45 min", 60 -> "1 h", 90 -> "1 h 30 min".

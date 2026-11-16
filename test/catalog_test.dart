@@ -105,8 +105,8 @@ void main() {
     });
 
     test('formatters', () {
-      expect(Formatters.price(60), r'$60');
-      expect(Formatters.price(45.5), r'$45.50');
+      expect(Formatters.price(2500), '৳2,500');
+      expect(Formatters.price(45.5), '৳45.50');
       expect(Formatters.duration(45), '45 min');
       expect(Formatters.duration(60), '1 h');
       expect(Formatters.duration(90), '1 h 30 min');
@@ -199,7 +199,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Swedish Massage'), findsOneWidget);
-      expect(find.text(r'$60'), findsWidgets);
+      expect(find.text('৳60'), findsWidgets);
       expect(find.text('1 h'), findsOneWidget);
       expect(find.text('3 times'), findsOneWidget);
       expect(find.text('A relaxing full-body massage.'), findsOneWidget);
