@@ -5,9 +5,10 @@ import 'package:go_router/go_router.dart';
 import '../../features/admin/presentation/admin_booking_detail_screen.dart';
 import '../../features/admin/presentation/admin_bookings_screen.dart';
 import '../../features/admin/presentation/admin_dashboard_screen.dart';
+import '../../features/admin/presentation/admin_discounts_screen.dart';
 import '../../features/admin/presentation/admin_fields_screen.dart';
 import '../../features/admin/presentation/admin_payments_screen.dart';
-import '../../features/admin/presentation/admin_placeholder_screen.dart';
+import '../../features/admin/presentation/admin_reports_screen.dart';
 import '../../features/admin/presentation/admin_services_screen.dart';
 import '../../features/admin/presentation/admin_shell.dart';
 import '../../features/admin/presentation/service_form_screen.dart';
@@ -121,28 +122,10 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
           StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/admin/discounts',
-                builder: (_, _) => const AdminPlaceholderScreen(
-                  title: 'Discount requests',
-                  icon: Icons.local_offer_outlined,
-                  message: 'Approve or decline customers\' discount requests.',
-                ),
-              ),
-            ],
+            routes: [GoRoute(path: '/admin/discounts', builder: (_, _) => const AdminDiscountsScreen())],
           ),
           StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/admin/reports',
-                builder: (_, _) => const AdminPlaceholderScreen(
-                  title: 'Sales reports',
-                  icon: Icons.bar_chart_outlined,
-                  message: 'Revenue by day, service, category and payment method.',
-                ),
-              ),
-            ],
+            routes: [GoRoute(path: '/admin/reports', builder: (_, _) => const AdminReportsScreen())],
           ),
           StatefulShellBranch(
             routes: [GoRoute(path: '/admin/payments', builder: (_, _) => const AdminPaymentsScreen())],

@@ -4,9 +4,11 @@ import '../../../core/network/api_exception.dart';
 import '../../../core/providers.dart';
 import '../../booking/domain/appointment.dart';
 import '../../booking/domain/payment_method.dart';
+import '../../discounts/domain/discount_request.dart';
 import '../domain/admin_service.dart';
 import '../data/admin_repository.dart';
 import '../domain/dashboard.dart';
+import '../domain/sales_report.dart';
 
 final adminRepositoryProvider = Provider<AdminRepository>((ref) => AdminRepository(ref.watch(apiClientProvider)));
 
@@ -32,6 +34,18 @@ final adminFieldsProvider = FutureProvider.autoDispose<List<ServiceField>>(
 
 final adminPaymentMethodsProvider = FutureProvider.autoDispose<List<PaymentMethod>>(
   (ref) => ref.read(adminRepositoryProvider).paymentMethods(),
+);
+
+// ------------------------------------------------------- discounts and reports
+/// Discount requests by status (`null` = all).
+final adminDiscountRequestsProvider = FutureProvider.autoDispose.family<List<DiscountRequest>, String?>(
+  (ref, status) => ref.read(adminRepositoryProvider).discountRequests(status: status),
+);
+
+typedef ReportQuery = ({String from, String to, String groupBy});
+
+final adminSalesReportProvider = FutureProvider.autoDispose.family<SalesReport, ReportQuery>(
+  (ref, q) => ref.read(adminRepositoryProvider).salesReport(from: q.from, to: q.to, groupBy: q.groupBy),
 );
 
 // ----------------------------------------------------------------- bookings

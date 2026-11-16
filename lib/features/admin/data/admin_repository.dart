@@ -1,8 +1,10 @@
 import '../../../core/network/api_client.dart';
 import '../../booking/domain/appointment.dart';
 import '../../booking/domain/payment_method.dart';
+import '../../discounts/domain/discount_request.dart';
 import '../domain/admin_service.dart';
 import '../domain/dashboard.dart';
+import '../domain/sales_report.dart';
 
 /// A page of bookings.
 class BookingsPage {
@@ -97,6 +99,48 @@ class AdminRepository {
   Future<PaymentMethod> updatePaymentMethod(String id, Map<String, dynamic> body) async {
     final res = await _api.patch('/admin/payment-methods/$id', data: body);
     return PaymentMethod.fromJson(res.data as Map<String, dynamic>);
+  }
+
+  // ---------------------------------------------------------- discount requests
+  /// [status] is pending | approved | declined | used, or null for all.
+  Future<List<DiscountRequest>> discountRequests({String? status}) async {
+    final res = await _api.get('/admin/discount-requests', query: {'status': ?status, 'limit': 50});
+    return [for (final r in res.data as List) DiscountRequest.fromJson(r as Map<String, dynamic>)];
+  }
+
+  /// [type] is percent | fixed.
+  Future<DiscountRequest> approveDiscount(
+    String id, {
+    required String type,
+    required num value,
+    int expiresInDays = 14,
+    String? note,
+  }) async {
+    final res = await _api.patch(
+      '/admin/discount-requests/$id/approve',
+      data: {
+        'type': type,
+        'value': value,
+        'expiresInDays': expiresInDays,
+        if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
+      },
+    );
+    return DiscountRequest.fromJson(res.data as Map<String, dynamic>);
+  }
+
+  Future<DiscountRequest> declineDiscount(String id, {String? note}) async {
+    final res = await _api.patch(
+      '/admin/discount-requests/$id/decline',
+      data: {if (note != null && note.trim().isNotEmpty) 'note': note.trim()},
+    );
+    return DiscountRequest.fromJson(res.data as Map<String, dynamic>);
+  }
+
+  // ------------------------------------------------------------------ reports
+  /// [from] / [to] are `YYYY-MM-DD`; [groupBy] is day | service | category | payment.
+  Future<SalesReport> salesReport({required String from, required String to, required String groupBy}) async {
+    final res = await _api.get('/admin/reports/sales', query: {'from': from, 'to': to, 'groupBy': groupBy});
+    return SalesReport.fromJson(res.data as Map<String, dynamic>);
   }
 
   // ------------------------------------------------------------------ bookings
