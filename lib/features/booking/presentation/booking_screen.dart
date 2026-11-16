@@ -67,8 +67,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     super.dispose();
   }
 
-  AvailabilityQuery get _query =>
-      (serviceId: widget.serviceId, date: DateFormat('yyyy-MM-dd').format(_date));
+  AvailabilityQuery get _query => (serviceId: widget.serviceId, date: DateFormat('yyyy-MM-dd').format(_date));
 
   void _selectDate(DateTime date) {
     if (date == _date) return;
@@ -96,7 +95,9 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
       _error = null;
     });
     try {
-      final appointment = await ref.read(bookingRepositoryProvider).create(
+      final appointment = await ref
+          .read(bookingRepositoryProvider)
+          .create(
             serviceId: widget.serviceId,
             startTime: slot.start,
             address: _address.text,
@@ -161,7 +162,8 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
 
     final availableMethods = methods.value ?? const <PaymentMethod>[];
     // Keep the choice valid; default to the first option once they load.
-    final method = availableMethods.where((m) => m.id == _method?.id).firstOrNull ??
+    final method =
+        availableMethods.where((m) => m.id == _method?.id).firstOrNull ??
         (availableMethods.isEmpty ? null : availableMethods.first);
 
     final slot = _slot;
@@ -210,10 +212,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                   child: Container(
                     padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: scheme.tertiaryContainer,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    decoration: BoxDecoration(color: scheme.tertiaryContainer, borderRadius: BorderRadius.circular(12)),
                     child: Row(
                       children: [
                         Icon(Icons.local_offer_outlined, color: scheme.onTertiaryContainer),
@@ -383,7 +382,7 @@ class _SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: EdgeInsets.fromLTRB(padded ? 20 : 0, 0, padded ? 20 : 0, 10),
-        child: Text(text, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
-      );
+    padding: EdgeInsets.fromLTRB(padded ? 20 : 0, 0, padded ? 20 : 0, 10),
+    child: Text(text, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
+  );
 }

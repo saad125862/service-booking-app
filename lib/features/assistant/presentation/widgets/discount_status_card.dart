@@ -79,8 +79,8 @@ class _DiscountStatusCardState extends ConsumerState<DiscountStatusCard> {
       title: approved
           ? 'Discount approved'
           : declined
-              ? 'Discount not approved'
-              : 'Discount ${request.status}',
+          ? 'Discount not approved'
+          : 'Discount ${request.status}',
       body: request.reply ?? 'The request was ${request.status}.',
       footer: approved ? _footer(request) : null,
     );
@@ -90,7 +90,8 @@ class _DiscountStatusCardState extends ConsumerState<DiscountStatusCard> {
     final parts = <String>[
       ?r.discountLabel,
       if (r.status == 'used') 'already used' else 'one order only',
-      if (r.expiresAt != null && r.status != 'used') 'valid until ${DateFormat('d MMM y').format(r.expiresAt!.toLocal())}',
+      if (r.expiresAt != null && r.status != 'used')
+        'valid until ${DateFormat('d MMM y').format(r.expiresAt!.toLocal())}',
     ];
     return parts.join('  ·  ');
   }
@@ -129,12 +130,18 @@ class _Card extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: theme.textTheme.titleSmall?.copyWith(color: foreground, fontWeight: FontWeight.w800)),
+                Text(
+                  title,
+                  style: theme.textTheme.titleSmall?.copyWith(color: foreground, fontWeight: FontWeight.w800),
+                ),
                 const SizedBox(height: 4),
                 Text(body, style: theme.textTheme.bodyMedium?.copyWith(color: foreground, height: 1.4)),
                 if (footer != null) ...[
                   const SizedBox(height: 8),
-                  Text(footer!, style: theme.textTheme.labelMedium?.copyWith(color: foreground, fontWeight: FontWeight.w700)),
+                  Text(
+                    footer!,
+                    style: theme.textTheme.labelMedium?.copyWith(color: foreground, fontWeight: FontWeight.w700),
+                  ),
                 ],
               ],
             ),

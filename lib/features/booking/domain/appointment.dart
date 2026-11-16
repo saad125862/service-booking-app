@@ -15,11 +15,11 @@ enum AppointmentStatus {
 
   /// Accent colour used by chips and cards.
   Color get color => switch (this) {
-        AppointmentStatus.pending => AppColors.warning,
-        AppointmentStatus.confirmed => AppColors.success,
-        AppointmentStatus.cancelled => const Color(0xFFC92A2A),
-        AppointmentStatus.completed => AppColors.info,
-      };
+    AppointmentStatus.pending => AppColors.warning,
+    AppointmentStatus.confirmed => AppColors.success,
+    AppointmentStatus.cancelled => const Color(0xFFC92A2A),
+    AppointmentStatus.completed => AppColors.info,
+  };
 
   static AppointmentStatus parse(String value) =>
       AppointmentStatus.values.firstWhere((s) => s.name == value, orElse: () => AppointmentStatus.pending);
@@ -44,13 +44,13 @@ class AppointmentService {
   final String? imageUrl;
 
   factory AppointmentService.fromJson(Map<String, dynamic> json) => AppointmentService(
-        id: json['id'] as String,
-        name: json['name'] as String,
-        price: (json['price'] as num).toDouble(),
-        durationMinutes: json['durationMinutes'] as int,
-        category: json['category'] as String,
-        imageUrl: json['imageUrl'] as String?,
-      );
+    id: json['id'] as String,
+    name: json['name'] as String,
+    price: (json['price'] as num).toDouble(),
+    durationMinutes: json['durationMinutes'] as int,
+    category: json['category'] as String,
+    imageUrl: json['imageUrl'] as String?,
+  );
 }
 
 /// The customer behind a booking (admin views only).
@@ -63,11 +63,11 @@ class AppointmentCustomer {
   final String? phone;
 
   factory AppointmentCustomer.fromJson(Map<String, dynamic> json) => AppointmentCustomer(
-        id: json['id'] as String,
-        name: json['name'] as String,
-        email: json['email'] as String,
-        phone: json['phone'] as String?,
-      );
+    id: json['id'] as String,
+    name: json['name'] as String,
+    email: json['email'] as String,
+    phone: json['phone'] as String?,
+  );
 }
 
 class Appointment {
@@ -88,6 +88,7 @@ class Appointment {
     this.paymentReference,
     this.paidAt,
     this.paymentMethod,
+    this.canPayOnline = false,
     this.customer,
   });
 
@@ -116,6 +117,9 @@ class Appointment {
   final DateTime? paidAt;
   final PaymentMethod? paymentMethod;
 
+  /// An online payment link can still be created for this booking.
+  final bool canPayOnline;
+
   /// Set only in admin responses.
   final AppointmentCustomer? customer;
 
@@ -130,26 +134,25 @@ class Appointment {
   String get reference => (id.length > 8 ? id.substring(0, 8) : id).toUpperCase();
 
   factory Appointment.fromJson(Map<String, dynamic> json) => Appointment(
-        id: json['id'] as String,
-        status: AppointmentStatus.parse(json['status'] as String),
-        startTime: DateTime.parse(json['startTime'] as String),
-        endTime: DateTime.parse(json['endTime'] as String),
-        startLabel: json['startLabel'] as String,
-        address: json['address'] as String?,
-        notes: json['notes'] as String?,
-        createdAt: json['createdAt'] == null ? null : DateTime.parse(json['createdAt'] as String),
-        service: AppointmentService.fromJson(json['service'] as Map<String, dynamic>),
-        price: (json['price'] as num?)?.toDouble() ?? 0,
-        originalPrice: (json['originalPrice'] as num?)?.toDouble() ?? 0,
-        discountAmount: (json['discountAmount'] as num?)?.toDouble() ?? 0,
-        paymentStatus: PaymentStatus.parse(json['paymentStatus'] as String? ?? 'unpaid'),
-        paymentReference: json['paymentReference'] as String?,
-        paidAt: json['paidAt'] == null ? null : DateTime.parse(json['paidAt'] as String),
-        paymentMethod: json['paymentMethod'] == null
-            ? null
-            : PaymentMethod.fromJson(json['paymentMethod'] as Map<String, dynamic>),
-        customer: json['customer'] == null
-            ? null
-            : AppointmentCustomer.fromJson(json['customer'] as Map<String, dynamic>),
-      );
+    id: json['id'] as String,
+    status: AppointmentStatus.parse(json['status'] as String),
+    startTime: DateTime.parse(json['startTime'] as String),
+    endTime: DateTime.parse(json['endTime'] as String),
+    startLabel: json['startLabel'] as String,
+    address: json['address'] as String?,
+    notes: json['notes'] as String?,
+    createdAt: json['createdAt'] == null ? null : DateTime.parse(json['createdAt'] as String),
+    service: AppointmentService.fromJson(json['service'] as Map<String, dynamic>),
+    price: (json['price'] as num?)?.toDouble() ?? 0,
+    originalPrice: (json['originalPrice'] as num?)?.toDouble() ?? 0,
+    discountAmount: (json['discountAmount'] as num?)?.toDouble() ?? 0,
+    paymentStatus: PaymentStatus.parse(json['paymentStatus'] as String? ?? 'unpaid'),
+    paymentReference: json['paymentReference'] as String?,
+    paidAt: json['paidAt'] == null ? null : DateTime.parse(json['paidAt'] as String),
+    paymentMethod: json['paymentMethod'] == null
+        ? null
+        : PaymentMethod.fromJson(json['paymentMethod'] as Map<String, dynamic>),
+    canPayOnline: json['canPayOnline'] as bool? ?? false,
+    customer: json['customer'] == null ? null : AppointmentCustomer.fromJson(json['customer'] as Map<String, dynamic>),
+  );
 }

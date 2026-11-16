@@ -6,8 +6,9 @@ import '../../auth/presentation/auth_controller.dart';
 import '../data/assistant_repository.dart';
 import '../domain/chat_message.dart';
 
-final assistantRepositoryProvider =
-    Provider<AssistantRepository>((ref) => AssistantRepository(ref.watch(apiClientProvider)));
+final assistantRepositoryProvider = Provider<AssistantRepository>(
+  (ref) => AssistantRepository(ref.watch(apiClientProvider)),
+);
 
 class ChatState {
   const ChatState({required this.messages, this.sending = false, this.lastUserText});
@@ -21,10 +22,10 @@ class ChatState {
   bool get hasUserMessages => messages.any((m) => m.isUser);
 
   ChatState copyWith({List<ChatMessage>? messages, bool? sending, String? lastUserText}) => ChatState(
-        messages: messages ?? this.messages,
-        sending: sending ?? this.sending,
-        lastUserText: lastUserText ?? this.lastUserText,
-      );
+    messages: messages ?? this.messages,
+    sending: sending ?? this.sending,
+    lastUserText: lastUserText ?? this.lastUserText,
+  );
 }
 
 /// The conversation with the Seba assistant. Kept while the app runs (survives tab switches)
@@ -41,9 +42,9 @@ class ChatController extends Notifier<ChatState> {
   ChatState build() {
     ref.watch(authProvider.select((a) => a.value?.id)); // new account => new conversation
     _nextId = 1;
-    return ChatState(messages: [
-      ChatMessage(id: _nextId++, role: ChatRole.assistant, text: greeting, isGreeting: true),
-    ]);
+    return ChatState(
+      messages: [ChatMessage(id: _nextId++, role: ChatRole.assistant, text: greeting, isGreeting: true)],
+    );
   }
 
   List<Map<String, String>> _history() {
@@ -62,7 +63,10 @@ class ChatController extends Notifier<ChatState> {
     // History is what came BEFORE this message (the server adds the new one itself).
     final history = _history();
     state = state.copyWith(
-      messages: [...state.messages, ChatMessage(id: _nextId++, role: ChatRole.user, text: text)],
+      messages: [
+        ...state.messages,
+        ChatMessage(id: _nextId++, role: ChatRole.user, text: text),
+      ],
       sending: true,
       lastUserText: text,
     );
@@ -80,6 +84,7 @@ class ChatController extends Notifier<ChatState> {
             text: reply.reply,
             recommended: reply.recommended,
             discountRequestId: reply.discountRequestId,
+            paymentLink: reply.paymentLink,
           ),
         ],
       );
@@ -108,11 +113,11 @@ class ChatController extends Notifier<ChatState> {
   }
 
   String _friendly(ApiException e) => switch (e.code) {
-        'AI_UNAVAILABLE' => 'The assistant is busy right now. Please try again in a moment.',
-        'AI_NOT_CONFIGURED' => 'The assistant is not available right now.',
-        'RATE_LIMITED' => 'You are sending messages too quickly. Please wait a moment.',
-        _ => e.message,
-      };
+    'AI_UNAVAILABLE' => 'The assistant is busy right now. Please try again in a moment.',
+    'AI_NOT_CONFIGURED' => 'The assistant is not available right now.',
+    'RATE_LIMITED' => 'You are sending messages too quickly. Please wait a moment.',
+    _ => e.message,
+  };
 }
 
 final chatControllerProvider = NotifierProvider<ChatController, ChatState>(ChatController.new);

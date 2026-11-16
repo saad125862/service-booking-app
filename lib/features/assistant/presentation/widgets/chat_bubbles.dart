@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../services/presentation/widgets/service_image.dart';
 import '../../domain/chat_message.dart';
+import '../../../booking/presentation/widgets/pay_online_button.dart';
 import 'discount_status_card.dart';
 
 /// One message in the conversation, plus the cards the assistant attached to it.
@@ -22,14 +23,14 @@ class ChatBubble extends StatelessWidget {
     final Color background = user
         ? scheme.primary
         : (message.isError ? scheme.errorContainer : scheme.surfaceContainerHighest);
-    final Color foreground = user
-        ? scheme.onPrimary
-        : (message.isError ? scheme.onErrorContainer : scheme.onSurface);
+    final Color foreground = user ? scheme.onPrimary : (message.isError ? scheme.onErrorContainer : scheme.onSurface);
 
     return Align(
       alignment: user ? Alignment.centerRight : Alignment.centerLeft,
       child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * 0.82 > 560 ? 560 : MediaQuery.sizeOf(context).width * 0.82),
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.sizeOf(context).width * 0.82 > 560 ? 560 : MediaQuery.sizeOf(context).width * 0.82,
+        ),
         child: Column(
           crossAxisAlignment: user ? CrossAxisAlignment.end : CrossAxisAlignment.start,
           children: [
@@ -54,7 +55,11 @@ class ChatBubble extends StatelessWidget {
                   if (message.isError && onRetry != null) ...[
                     const SizedBox(height: 8),
                     TextButton.icon(
-                      style: TextButton.styleFrom(foregroundColor: foreground, padding: EdgeInsets.zero, minimumSize: const Size(0, 32)),
+                      style: TextButton.styleFrom(
+                        foregroundColor: foreground,
+                        padding: EdgeInsets.zero,
+                        minimumSize: const Size(0, 32),
+                      ),
                       onPressed: onRetry,
                       icon: const Icon(Icons.refresh, size: 18),
                       label: const Text('Try again'),
@@ -77,6 +82,18 @@ class ChatBubble extends StatelessWidget {
               ),
             ],
             if (message.discountRequestId != null) DiscountStatusCard(requestId: message.discountRequestId!),
+            if (message.paymentLink?.appointmentId != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: SizedBox(
+                  width: 360,
+                  child: PayOnlineButton(
+                    appointmentId: message.paymentLink!.appointmentId!,
+                    amount: message.paymentLink!.amount,
+                    initialUrl: message.paymentLink!.url,
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -100,7 +117,11 @@ class _RecommendedCard extends StatelessWidget {
           onTap: () => context.push('/service/${service.id}'),
           child: Row(
             children: [
-              SizedBox(width: 72, height: double.infinity, child: ServiceImage(url: service.imageUrl)),
+              SizedBox(
+                width: 72,
+                height: double.infinity,
+                child: ServiceImage(url: service.imageUrl),
+              ),
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -108,13 +129,21 @@ class _RecommendedCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(service.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
+                      Text(
+                        service.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                      ),
                       const SizedBox(height: 2),
                       Text(
                         '${Formatters.price(service.price)} · ${Formatters.duration(service.durationMinutes)}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.primary, fontWeight: FontWeight.w600),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ],
                   ),
@@ -158,7 +187,10 @@ class TypingBubble extends StatelessWidget {
                   width: 8,
                   height: 8,
                   margin: EdgeInsets.only(right: i < 2 ? 5 : 0),
-                  decoration: BoxDecoration(color: scheme.onSurfaceVariant.withValues(alpha: 0.5 + i * 0.15), shape: BoxShape.circle),
+                  decoration: BoxDecoration(
+                    color: scheme.onSurfaceVariant.withValues(alpha: 0.5 + i * 0.15),
+                    shape: BoxShape.circle,
+                  ),
                 ),
             ],
           ),

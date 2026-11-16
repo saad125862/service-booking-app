@@ -6,8 +6,7 @@ import '../domain/appointment.dart';
 import '../domain/availability.dart';
 import '../domain/payment_method.dart';
 
-final bookingRepositoryProvider =
-    Provider<BookingRepository>((ref) => BookingRepository(ref.watch(apiClientProvider)));
+final bookingRepositoryProvider = Provider<BookingRepository>((ref) => BookingRepository(ref.watch(apiClientProvider)));
 
 enum BookingScope { upcoming, past }
 

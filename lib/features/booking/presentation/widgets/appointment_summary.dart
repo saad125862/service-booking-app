@@ -21,7 +21,11 @@ class AppointmentSummary extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(height: 150, width: double.infinity, child: ServiceImage(url: a.service.imageUrl)),
+          SizedBox(
+            height: 150,
+            width: double.infinity,
+            child: ServiceImage(url: a.service.imageUrl),
+          ),
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -52,7 +56,11 @@ class AppointmentSummary extends StatelessWidget {
                       : Formatters.price(a.amount),
                 ),
                 if (a.hasDiscount)
-                  _Row(icon: Icons.local_offer_outlined, label: 'Discount', value: '-${Formatters.price(a.discountAmount)}'),
+                  _Row(
+                    icon: Icons.local_offer_outlined,
+                    label: 'Discount',
+                    value: '-${Formatters.price(a.discountAmount)}',
+                  ),
                 _Row(
                   icon: a.paymentMethod?.type.icon ?? Icons.account_balance_wallet_outlined,
                   label: 'Payment',

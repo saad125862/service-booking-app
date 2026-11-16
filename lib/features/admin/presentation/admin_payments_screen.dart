@@ -111,6 +111,10 @@ class AdminPaymentsScreen extends ConsumerWidget {
                                             if (m.accountNumber != null && m.accountNumber!.isNotEmpty)
                                               m.accountNumber!,
                                             if (m.requiresReference) 'asks for transaction ID',
+                                            if (m.online)
+                                              m.providerReady
+                                                  ? 'online checkout'
+                                                  : 'online · gateway keys not set (hidden from customers)',
                                           ].join(' · '),
                                           style: theme.textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
                                         ),

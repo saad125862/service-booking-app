@@ -7,6 +7,7 @@ import '../../../core/widgets/state_views.dart';
 import '../domain/appointment.dart';
 import 'booking_providers.dart';
 import 'widgets/appointment_summary.dart';
+import 'widgets/pay_online_button.dart';
 
 /// One appointment, with a Cancel action while it is still pending.
 class BookingDetailsScreen extends ConsumerStatefulWidget {
@@ -27,7 +28,9 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Cancel this booking?'),
-        content: Text('${appointment.service.name} on ${appointment.startLabel} will be cancelled and the time slot released.'),
+        content: Text(
+          '${appointment.service.name} on ${appointment.startLabel} will be cancelled and the time slot released.',
+        ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Keep booking')),
           FilledButton(
@@ -70,11 +73,13 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen> {
       ),
       body: appointment == null
           ? (detail.hasError
-              ? ErrorView(
-                  message: detail.error is ApiException ? (detail.error as ApiException).message : 'Please try again.',
-                  onRetry: () => ref.invalidate(appointmentDetailProvider(widget.appointmentId)),
-                )
-              : const LoadingView())
+                ? ErrorView(
+                    message: detail.error is ApiException
+                        ? (detail.error as ApiException).message
+                        : 'Please try again.',
+                    onRetry: () => ref.invalidate(appointmentDetailProvider(widget.appointmentId)),
+                  )
+                : const LoadingView())
           : Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 560),
@@ -82,6 +87,10 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen> {
                   padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
                   children: [
                     AppointmentSummary(appointment: appointment),
+                    if (appointment.canPayOnline) ...[
+                      const SizedBox(height: 16),
+                      PayOnlineButton(appointmentId: appointment.id, amount: appointment.amount),
+                    ],
                     const SizedBox(height: 20),
                     if (appointment.isPending)
                       OutlinedButton.icon(
@@ -98,14 +107,13 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen> {
                     else
                       Text(
                         switch (appointment.status) {
-                          AppointmentStatus.confirmed => 'This booking is confirmed and can no longer be cancelled online.',
+                          AppointmentStatus.confirmed =>
+                            'This booking is confirmed and can no longer be cancelled online.',
                           AppointmentStatus.cancelled => 'This booking was cancelled.',
                           _ => 'This booking is complete.',
                         },
                         textAlign: TextAlign.center,
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyMedium
+                        style: Theme.of(context).textTheme.bodyMedium
                             ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                       ),
                   ],

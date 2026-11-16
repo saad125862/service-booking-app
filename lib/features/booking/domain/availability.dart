@@ -1,10 +1,5 @@
 class TimeSlot {
-  const TimeSlot({
-    required this.start,
-    required this.end,
-    required this.label,
-    required this.available,
-  });
+  const TimeSlot({required this.start, required this.end, required this.label, required this.available});
 
   final DateTime start;
   final DateTime end;
@@ -14,11 +9,11 @@ class TimeSlot {
   final bool available;
 
   factory TimeSlot.fromJson(Map<String, dynamic> json) => TimeSlot(
-        start: DateTime.parse(json['start'] as String),
-        end: DateTime.parse(json['end'] as String),
-        label: json['label'] as String,
-        available: json['available'] as bool,
-      );
+    start: DateTime.parse(json['start'] as String),
+    end: DateTime.parse(json['end'] as String),
+    label: json['label'] as String,
+    available: json['available'] as bool,
+  );
 
   @override
   bool operator ==(Object other) => other is TimeSlot && other.start == start;
@@ -37,8 +32,8 @@ class Availability {
   bool get hasAvailableSlot => slots.any((s) => s.available);
 
   factory Availability.fromJson(Map<String, dynamic> json) => Availability(
-        date: json['date'] as String,
-        timeZone: json['timeZone'] as String,
-        slots: [for (final s in json['slots'] as List) TimeSlot.fromJson(s as Map<String, dynamic>)],
-      );
+    date: json['date'] as String,
+    timeZone: json['timeZone'] as String,
+    slots: [for (final s in json['slots'] as List) TimeSlot.fromJson(s as Map<String, dynamic>)],
+  );
 }

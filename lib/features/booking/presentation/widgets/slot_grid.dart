@@ -22,10 +22,7 @@ class SlotGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return availability.when(
-      loading: () => const SizedBox(
-        height: 120,
-        child: Center(child: CircularProgressIndicator()),
-      ),
+      loading: () => const SizedBox(height: 120, child: Center(child: CircularProgressIndicator())),
       error: (error, _) => _Notice(
         icon: Icons.cloud_off_outlined,
         message: error is ApiException ? error.message : 'Could not load time slots.',

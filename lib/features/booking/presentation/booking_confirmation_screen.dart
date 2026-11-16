@@ -9,6 +9,7 @@ import '../../../core/widgets/state_views.dart';
 import '../domain/appointment.dart';
 import 'booking_providers.dart';
 import 'widgets/appointment_summary.dart';
+import 'widgets/pay_online_button.dart';
 
 /// Shown right after booking. [initial] is the appointment just created.
 class BookingConfirmationScreen extends ConsumerWidget {
@@ -47,17 +48,11 @@ class BookingConfirmationScreen extends ConsumerWidget {
                 children: [
                   Container(
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.success.withValues(alpha: 0.14),
-                      shape: BoxShape.circle,
-                    ),
+                    decoration: BoxDecoration(color: AppColors.success.withValues(alpha: 0.14), shape: BoxShape.circle),
                     child: const Icon(Icons.check_rounded, size: 44, color: AppColors.success),
                   ),
                   const SizedBox(height: 16),
-                  Text(
-                    "You're booked!",
-                    style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
-                  ),
+                  Text("You're booked!", style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800)),
                   const SizedBox(height: 6),
                   Text(
                     appointment.isPending
@@ -70,6 +65,10 @@ class BookingConfirmationScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 24),
               AppointmentSummary(appointment: appointment),
+              if (appointment.canPayOnline) ...[
+                const SizedBox(height: 16),
+                PayOnlineButton(appointmentId: appointment.id, amount: appointment.amount),
+              ],
               const SizedBox(height: 24),
               AppButton(
                 label: 'View my bookings',

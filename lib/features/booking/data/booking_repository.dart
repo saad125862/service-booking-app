@@ -1,6 +1,7 @@
 import '../../../core/network/api_client.dart';
 import '../domain/appointment.dart';
 import '../domain/availability.dart';
+import '../domain/payment_link.dart';
 import '../domain/payment_method.dart';
 
 /// Availability, booking and the signed-in user's appointments.
@@ -25,14 +26,17 @@ class BookingRepository {
   }) async {
     final trimmed = notes?.trim() ?? '';
     final reference = paymentReference?.trim() ?? '';
-    final res = await _api.post('/appointments', data: {
-      'serviceId': serviceId,
-      'startTime': startTime.toUtc().toIso8601String(),
-      'address': address.trim(),
-      'paymentMethodId': paymentMethodId,
-      if (reference.isNotEmpty) 'paymentReference': reference,
-      if (trimmed.isNotEmpty) 'notes': trimmed,
-    });
+    final res = await _api.post(
+      '/appointments',
+      data: {
+        'serviceId': serviceId,
+        'startTime': startTime.toUtc().toIso8601String(),
+        'address': address.trim(),
+        'paymentMethodId': paymentMethodId,
+        if (reference.isNotEmpty) 'paymentReference': reference,
+        if (trimmed.isNotEmpty) 'notes': trimmed,
+      },
+    );
     return Appointment.fromJson(res.data as Map<String, dynamic>);
   }
 
@@ -51,6 +55,12 @@ class BookingRepository {
   Future<Appointment> detail(String id) async {
     final res = await _api.get('/appointments/$id');
     return Appointment.fromJson(res.data as Map<String, dynamic>);
+  }
+
+  /// Creates a gateway checkout for the booking's exact price. Open [PaymentLink.url] to pay.
+  Future<PaymentLink> startOnlinePayment(String id) async {
+    final res = await _api.post('/appointments/$id/pay-online', data: <String, dynamic>{});
+    return PaymentLink.fromJson(res.data as Map<String, dynamic>);
   }
 
   Future<Appointment> cancel(String id) async {

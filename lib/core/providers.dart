@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'network/api_client.dart';
 import 'storage/token_storage.dart';
@@ -22,3 +23,9 @@ final apiClientProvider = Provider<ApiClient>((ref) {
     onUnauthorized: () => ref.read(sessionExpiryProvider.notifier).notify(),
   );
 });
+
+/// Opens a link in the browser (e.g. a payment checkout). Overridden in tests.
+final urlOpenerProvider = Provider<Future<bool> Function(Uri url)>(
+  (ref) =>
+      (url) => launchUrl(url, mode: LaunchMode.externalApplication),
+);

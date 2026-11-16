@@ -78,7 +78,9 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
                         padding: const EdgeInsets.only(bottom: 12),
                         child: ChatBubble(
                           message: m,
-                          onRetry: m.isError && !chat.sending ? () => ref.read(chatControllerProvider.notifier).retry() : null,
+                          onRetry: m.isError && !chat.sending
+                              ? () => ref.read(chatControllerProvider.notifier).retry()
+                              : null,
                         ),
                       ),
                     if (chat.sending) const Padding(padding: EdgeInsets.only(bottom: 12), child: TypingBubble()),

@@ -14,14 +14,12 @@ enum PaymentType {
 
   /// The API value (`mobile_wallet`).
   String get apiValue => switch (this) {
-        PaymentType.mobileWallet => 'mobile_wallet',
-        _ => name,
-      };
+    PaymentType.mobileWallet => 'mobile_wallet',
+    _ => name,
+  };
 
-  static PaymentType parse(String value) => PaymentType.values.firstWhere(
-        (t) => t.apiValue == value,
-        orElse: () => PaymentType.cash,
-      );
+  static PaymentType parse(String value) =>
+      PaymentType.values.firstWhere((t) => t.apiValue == value, orElse: () => PaymentType.cash);
 }
 
 enum PaymentStatus {
@@ -35,11 +33,11 @@ enum PaymentStatus {
   final IconData icon;
 
   Color get color => switch (this) {
-        PaymentStatus.unpaid => const Color(0xFF868E96),
-        PaymentStatus.submitted => AppColors.warning,
-        PaymentStatus.paid => AppColors.success,
-        PaymentStatus.failed => const Color(0xFFC92A2A),
-      };
+    PaymentStatus.unpaid => const Color(0xFF868E96),
+    PaymentStatus.submitted => AppColors.warning,
+    PaymentStatus.paid => AppColors.success,
+    PaymentStatus.failed => const Color(0xFFC92A2A),
+  };
 
   static PaymentStatus parse(String value) =>
       PaymentStatus.values.firstWhere((s) => s.name == value, orElse: () => PaymentStatus.unpaid);
@@ -55,6 +53,9 @@ class PaymentMethod {
     this.instructions,
     this.accountNumber,
     this.requiresReference = false,
+    this.online = false,
+    this.gatewayProvider,
+    this.providerReady = true,
     this.isActive = true,
     this.sortOrder = 0,
   });
@@ -68,18 +69,28 @@ class PaymentMethod {
 
   /// Wallet-style methods need the customer's transaction ID.
   final bool requiresReference;
+
+  /// Paid through a gateway checkout link (SSLCommerz, aamarPay, ...) after booking.
+  final bool online;
+
+  /// Admin views only: which gateway, and whether its keys are set on the server.
+  final String? gatewayProvider;
+  final bool providerReady;
   final bool isActive;
   final int sortOrder;
 
   factory PaymentMethod.fromJson(Map<String, dynamic> json) => PaymentMethod(
-        id: json['id'] as String,
-        code: json['code'] as String,
-        name: json['name'] as String,
-        type: PaymentType.parse(json['type'] as String),
-        instructions: json['instructions'] as String?,
-        accountNumber: json['accountNumber'] as String?,
-        requiresReference: json['requiresReference'] as bool? ?? false,
-        isActive: json['isActive'] as bool? ?? true,
-        sortOrder: (json['sortOrder'] as num?)?.toInt() ?? 0,
-      );
+    id: json['id'] as String,
+    code: json['code'] as String,
+    name: json['name'] as String,
+    type: PaymentType.parse(json['type'] as String),
+    instructions: json['instructions'] as String?,
+    accountNumber: json['accountNumber'] as String?,
+    requiresReference: json['requiresReference'] as bool? ?? false,
+    online: json['online'] as bool? ?? false,
+    gatewayProvider: json['gatewayProvider'] as String?,
+    providerReady: json['providerReady'] as bool? ?? true,
+    isActive: json['isActive'] as bool? ?? true,
+    sortOrder: (json['sortOrder'] as num?)?.toInt() ?? 0,
+  );
 }

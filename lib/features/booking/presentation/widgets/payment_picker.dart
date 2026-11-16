@@ -54,7 +54,9 @@ class PaymentPicker extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Material(
-                  color: selected?.id == m.id ? scheme.primaryContainer : scheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                  color: selected?.id == m.id
+                      ? scheme.primaryContainer
+                      : scheme.surfaceContainerHighest.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(14),
                   child: InkWell(
                     borderRadius: BorderRadius.circular(14),
@@ -63,14 +65,20 @@ class PaymentPicker extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                       child: Row(
                         children: [
-                          Icon(m.type.icon, color: selected?.id == m.id ? scheme.onPrimaryContainer : scheme.onSurfaceVariant),
+                          Icon(
+                            m.type.icon,
+                            color: selected?.id == m.id ? scheme.onPrimaryContainer : scheme.onSurfaceVariant,
+                          ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(m.name, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
-                                Text(m.type.label, style: theme.textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant)),
+                                Text(
+                                  m.type.label,
+                                  style: theme.textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+                                ),
                               ],
                             ),
                           ),
@@ -108,7 +116,8 @@ class PaymentPicker extends StatelessWidget {
                 hint: 'e.g. 9A7XK21LMP',
                 prefixIcon: Icons.receipt_long_outlined,
                 enabled: enabled,
-                validator: (v) => (v == null || v.trim().length < 4) ? 'Enter the transaction ID after sending the money' : null,
+                validator: (v) =>
+                    (v == null || v.trim().length < 4) ? 'Enter the transaction ID after sending the money' : null,
               ),
           ],
         );

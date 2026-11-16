@@ -95,10 +95,15 @@ class _DayChip extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(isToday ? 'Today' : DateFormat('EEE').format(day),
-                    style: TextStyle(fontSize: 12, color: muted, fontWeight: FontWeight.w600)),
+                Text(
+                  isToday ? 'Today' : DateFormat('EEE').format(day),
+                  style: TextStyle(fontSize: 12, color: muted, fontWeight: FontWeight.w600),
+                ),
                 const SizedBox(height: 2),
-                Text('${day.day}', style: TextStyle(fontSize: 22, color: fg, fontWeight: FontWeight.w800)),
+                Text(
+                  '${day.day}',
+                  style: TextStyle(fontSize: 22, color: fg, fontWeight: FontWeight.w800),
+                ),
                 Text(DateFormat('MMM').format(day), style: TextStyle(fontSize: 12, color: muted)),
               ],
             ),
