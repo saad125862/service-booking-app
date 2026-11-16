@@ -6,7 +6,7 @@ Mobile app for **Seba**, a service booking and management platform. Customers br
 - **Overview and plan:** [service-booking-master](https://github.com/saad125862/service-booking-master)
 - **Stack:** Flutter 3.47 / Dart 3.13, Riverpod 3 (no code generation), go_router, dio, flutter_secure_storage
 
-**Download the Android APK:** [Seba v1.0.0](https://github.com/saad125862/service-booking-app/releases/tag/v1.0.0) (built against the live API; the login screen has one-tap Customer and Admin demo buttons).
+**Download the Android APK:** [Seba v1.0.1](https://github.com/saad125862/service-booking-app/releases/tag/v1.0.1) (built against the live API; the login screen has one-tap Customer and Admin demo buttons).
 
 ## Progress
 
@@ -20,14 +20,14 @@ Mobile app for **Seba**, a service booking and management platform. Customers br
 | My bookings: upcoming and past, status chips, details, cancel pending only | Done |
 | Profile: edit details and default address, change password, light/dark mode, sign out | Done |
 | Admin shell (sidebar, More menu), sales dashboard with charts, bookings management (status and payment verification) | Done |
-| Admin: services (search, hide / show) with a **dynamic add / edit form**: custom fields render by type and admins can add new fields on the spot; custom-field manager | Done |
+| Admin: services (search, hide / show) with a **dynamic add / edit form**: custom fields render by type and admins can add new fields on the spot; photos are chosen with the **file picker** (preview, change, remove; JPG, PNG or WebP up to 5 MB, uploaded on save); custom-field manager | Done |
 | Admin: payment options (cash, card, bKash, Nagad, online gateways), discount request approvals (percent or taka, validity, note), sales reports (by day, service, category, payment; copy CSV) | Done |
 | Online payment: Pay button on a booking opens the SSLCommerz / aamarPay checkout for the exact amount and waits for the server to confirm; the assistant sends the same link in chat | Done |
 | AI assistant chat (English, Bangla, Banglish), recommendation cards, discount requests that wait for an admin | Done |
 | Payment options at booking (cash, card, bKash, Nagad), price snapshot, one-order discounts | Done |
 | Left sidebar with sign out (drawer on phones), dark/light mode, in-app notifications | Done |
 | Dark premium design and motion: page transitions, fading tabs, staggered lists, press feedback, skeleton loaders, animated charts, app icon | Done |
-| Release APK (v1.0.0, `kotlin.incremental=false`) published as a GitHub Release | Done |
+| Release APK (v1.0.1, `kotlin.incremental=false`) published as a GitHub Release | Done |
 
 ## Run it
 
