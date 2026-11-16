@@ -11,15 +11,18 @@ import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/state_views.dart';
 import '../../../core/widgets/status_banner.dart';
 import '../../auth/presentation/auth_controller.dart';
+import '../../discounts/presentation/discount_providers.dart';
 import '../../services/domain/service.dart';
 import '../../services/presentation/services_providers.dart';
 import '../../services/presentation/widgets/service_image.dart';
 import '../domain/availability.dart';
+import '../domain/payment_method.dart';
 import 'booking_providers.dart';
 import 'widgets/date_strip.dart';
+import 'widgets/payment_picker.dart';
 import 'widgets/slot_grid.dart';
 
-/// Pick a date and an available time slot, add optional notes and confirm.
+/// Pick a date and an available time slot, give the address, choose how to pay and confirm.
 class BookingScreen extends ConsumerStatefulWidget {
   const BookingScreen({super.key, required this.serviceId, this.service});
 
@@ -37,7 +40,9 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   final _formKey = GlobalKey<FormState>();
   final _address = TextEditingController();
   final _addressFocus = FocusNode();
+  final _reference = TextEditingController();
   final _notes = TextEditingController();
+  PaymentMethod? _method;
   bool _saveAddress = true;
   bool _submitting = false;
   String? _error;
@@ -57,6 +62,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   void dispose() {
     _address.dispose();
     _addressFocus.dispose();
+    _reference.dispose();
     _notes.dispose();
     super.dispose();
   }
@@ -73,11 +79,15 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     });
   }
 
-  Future<void> _confirm() async {
+  Future<void> _confirm(PaymentMethod? method) async {
     final slot = _slot;
     if (slot == null || _submitting) return;
+    if (method == null) {
+      setState(() => _error = 'Choose how you would like to pay.');
+      return;
+    }
     if (!_formKey.currentState!.validate()) {
-      _addressFocus.requestFocus(); // scrolls the field into view
+      _addressFocus.requestFocus(); // scrolls the first problem into view
       return;
     }
     FocusScope.of(context).unfocus();
@@ -90,21 +100,23 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
             serviceId: widget.serviceId,
             startTime: slot.start,
             address: _address.text,
+            paymentMethodId: method.id,
+            paymentReference: method.requiresReference ? _reference.text : null,
             notes: _notes.text,
           );
       refreshBookings(ref);
+      ref.invalidate(myDiscountsProvider); // a used discount is consumed
       _saveDefaultAddress();
       if (!mounted) return;
       context.go('/booking/${appointment.id}/confirmed', extra: appointment);
     } on ApiException catch (e) {
       // The slot may have been taken meanwhile: reload the slots and ask for another.
-      if (e.code == 'SLOT_UNAVAILABLE' || e.code == 'INVALID_SLOT') {
-        ref.invalidate(availabilityProvider(_query));
-      }
+      final slotProblem = e.code == 'SLOT_UNAVAILABLE' || e.code == 'INVALID_SLOT';
+      if (slotProblem) ref.invalidate(availabilityProvider(_query));
       if (mounted) {
         setState(() {
-          _error = e.message;
-          if (e.code == 'SLOT_UNAVAILABLE' || e.code == 'INVALID_SLOT') _slot = null;
+          _error = e.details.isNotEmpty ? e.details.values.join('\n') : e.message;
+          if (slotProblem) _slot = null;
         });
       }
     } finally {
@@ -122,10 +134,12 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final addressChanged = _address.text.trim() != _profileAddress && _address.text.trim().length >= 5;
     final fetched = ref.watch(serviceDetailProvider(widget.serviceId));
     final service = fetched.value ?? widget.service;
     final availability = ref.watch(availabilityProvider(_query));
+    final methods = ref.watch(paymentMethodsProvider);
 
     if (service == null) {
       return Scaffold(
@@ -138,6 +152,17 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
             : const LoadingView(),
       );
     }
+
+    // The customer's own approved discount (one order only) is shown before they confirm.
+    final discounts = ref.watch(myDiscountsProvider).value ?? const [];
+    final discount = bestDiscountFor(discounts, widget.serviceId, service.price);
+    final discountAmount = discount?.amountFor(service.price) ?? 0;
+    final payable = service.price - discountAmount;
+
+    final availableMethods = methods.value ?? const <PaymentMethod>[];
+    // Keep the choice valid; default to the first option once they load.
+    final method = availableMethods.where((m) => m.id == _method?.id).firstOrNull ??
+        (availableMethods.isEmpty ? null : availableMethods.first);
 
     final slot = _slot;
     return Scaffold(
@@ -170,7 +195,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                               const SizedBox(height: 4),
                               Text(
                                 '${Formatters.price(service.price)}  ·  ${Formatters.duration(service.durationMinutes)}',
-                                style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.primary),
+                                style: theme.textTheme.bodyMedium?.copyWith(color: scheme.primary),
                               ),
                             ],
                           ),
@@ -180,6 +205,30 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                   ),
                 ),
               ),
+              if (discount != null)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: scheme.tertiaryContainer,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.local_offer_outlined, color: scheme.onTertiaryContainer),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'Your approved discount (${discount.discountLabel}) is applied to this order. '
+                            'It works for this one order only.',
+                            style: TextStyle(color: scheme.onTertiaryContainer, height: 1.3),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               const _SectionTitle('Select a date'),
               DateStrip(selected: _date, today: _today, onSelected: _selectDate),
               const SizedBox(height: 20),
@@ -198,7 +247,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                   padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
                   child: Text(
                     'Times are shown in ${availability.value!.timeZone} time.',
-                    style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                    style: theme.textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
                   ),
                 ),
               const SizedBox(height: 20),
@@ -229,6 +278,19 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                           value: _saveAddress,
                           onChanged: _submitting ? null : (v) => setState(() => _saveAddress = v),
                         ),
+                      const SizedBox(height: 20),
+                      const Align(alignment: Alignment.centerLeft, child: _SectionTitle('Payment', padded: false)),
+                      PaymentPicker(
+                        methods: methods,
+                        selected: method,
+                        onSelected: (m) => setState(() {
+                          _method = m;
+                          _error = null;
+                        }),
+                        referenceController: _reference,
+                        enabled: !_submitting,
+                        onRetry: () => ref.invalidate(paymentMethodsProvider),
+                      ),
                     ],
                   ),
                 ),
@@ -270,7 +332,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                       padding: const EdgeInsets.only(bottom: 10),
                       child: Row(
                         children: [
-                          Icon(Icons.event_available, size: 18, color: theme.colorScheme.primary),
+                          Icon(Icons.event_available, size: 18, color: scheme.primary),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
@@ -278,11 +340,21 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                               style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
                             ),
                           ),
+                          if (discountAmount > 0) ...[
+                            Text(
+                              Formatters.price(service.price),
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                decoration: TextDecoration.lineThrough,
+                                color: scheme.onSurfaceVariant,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                          ],
                           Text(
-                            Formatters.price(service.price),
+                            Formatters.price(payable),
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w800,
-                              color: theme.colorScheme.primary,
+                              color: scheme.primary,
                             ),
                           ),
                         ],
@@ -292,7 +364,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                     label: slot == null ? 'Select a time' : 'Confirm booking',
                     icon: slot == null ? null : Icons.check_circle_outline,
                     loading: _submitting,
-                    onPressed: slot == null ? null : _confirm,
+                    onPressed: slot == null ? null : () => _confirm(method),
                   ),
                 ],
               ),
@@ -305,12 +377,13 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
 }
 
 class _SectionTitle extends StatelessWidget {
-  const _SectionTitle(this.text);
+  const _SectionTitle(this.text, {this.padded = true});
   final String text;
+  final bool padded;
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
+        padding: EdgeInsets.fromLTRB(padded ? 20 : 0, 0, padded ? 20 : 0, 10),
         child: Text(text, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
       );
 }
