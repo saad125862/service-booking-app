@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/widgets/state_views.dart';
 import '../../booking/presentation/booking_providers.dart';
+import '../../notifications/presentation/notification_bell.dart';
+import '../../shell/shell_scope.dart';
 import '../../booking/presentation/widgets/booking_card.dart';
 
 /// My Bookings: upcoming and past appointments.
@@ -18,6 +20,8 @@ class BookingsScreen extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('My bookings'),
+          leading: shellMenuLeading(context),
+          actions: const [NotificationBell()],
           bottom: const TabBar(tabs: [Tab(text: 'Upcoming'), Tab(text: 'Past')]),
         ),
         body: const TabBarView(

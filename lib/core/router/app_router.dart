@@ -10,6 +10,7 @@ import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
 import '../../features/auth/presentation/splash_screen.dart';
 import '../../features/bookings/presentation/bookings_screen.dart';
+import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/services/presentation/home_screen.dart';
 import '../../features/booking/domain/appointment.dart';
@@ -21,6 +22,9 @@ import '../../features/services/presentation/service_details_screen.dart';
 import '../../features/shell/home_shell.dart';
 
 const _authRoutes = {'/login', '/register'};
+
+/// Screens both customers and admins may open.
+const _sharedRoutes = {'/notifications'};
 
 /// Where the user should be, given the auth state and the current location.
 /// Returns null when the current location is fine.
@@ -41,7 +45,7 @@ String? appRedirect(AsyncValue<User?> auth, String location, {String? from}) {
   final home = user.isAdmin ? '/admin' : '/';
   if (location == '/splash') return _safeTarget(from, user) ?? home;
   if (_authRoutes.contains(location)) return home;
-  if (user.isAdmin && !location.startsWith('/admin')) return '/admin';
+  if (user.isAdmin && !location.startsWith('/admin') && !_sharedRoutes.contains(location)) return '/admin';
   if (!user.isAdmin && location.startsWith('/admin')) return '/';
   return null;
 }
@@ -50,7 +54,7 @@ String? appRedirect(AsyncValue<User?> auth, String location, {String? from}) {
 String? _safeTarget(String? from, User user) {
   if (from == null || !from.startsWith('/') || from.startsWith('//')) return null;
   if (from == '/splash' || _authRoutes.contains(from)) return null;
-  if (user.isAdmin != from.startsWith('/admin')) return null;
+  if (!_sharedRoutes.contains(from) && user.isAdmin != from.startsWith('/admin')) return null;
   return from;
 }
 
@@ -73,6 +77,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/login', builder: (_, _) => const LoginScreen()),
       GoRoute(path: '/register', builder: (_, _) => const RegisterScreen()),
       GoRoute(path: '/admin', builder: (_, _) => const AdminHomeScreen()),
+      GoRoute(path: '/notifications', builder: (_, _) => const NotificationsScreen()),
       GoRoute(
         path: '/service/:id',
         builder: (_, state) => ServiceDetailsScreen(

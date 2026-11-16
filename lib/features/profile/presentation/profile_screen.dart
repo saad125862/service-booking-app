@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../auth/presentation/auth_controller.dart';
+import '../../notifications/presentation/notification_bell.dart';
+import '../../shell/shell_scope.dart';
 
 /// Minimal profile for now (identity + sign out); editing arrives in a later phase.
 class ProfileScreen extends ConsumerWidget {
@@ -13,7 +15,11 @@ class ProfileScreen extends ConsumerWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
+      appBar: AppBar(
+        title: const Text('Profile'),
+        leading: shellMenuLeading(context),
+        actions: const [NotificationBell()],
+      ),
       body: user == null
           ? const SizedBox.shrink()
           : ListView(

@@ -8,6 +8,8 @@ import '../../../core/network/api_exception.dart';
 import '../../../core/widgets/state_views.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../domain/service.dart';
+import '../../notifications/presentation/notification_bell.dart';
+import '../../shell/shell_scope.dart';
 import 'services_providers.dart';
 import 'widgets/category_chips.dart';
 import 'widgets/featured_service_card.dart';
@@ -154,6 +156,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 SliverAppBar(
                   floating: true,
                   toolbarHeight: 72,
+                  leading: shellMenuLeading(context),
+                  actions: const [NotificationBell(), SizedBox(width: 4)],
                   title: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
