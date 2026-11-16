@@ -39,6 +39,9 @@ class AuthController extends AsyncNotifier<User?> {
     state = AsyncData(user);
   }
 
+  Future<void> changePassword({required String currentPassword, required String newPassword}) =>
+      _repo.changePassword(currentPassword: currentPassword, newPassword: newPassword);
+
   Future<void> logout() async {
     await _repo.logout();
     state = const AsyncData(null);
