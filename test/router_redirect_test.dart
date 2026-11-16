@@ -13,12 +13,29 @@ const AsyncValue<User?> _signedOut = AsyncData(null);
 void main() {
   group('appRedirect', () {
     test('shows the splash while the saved session is restored, and when that fails', () {
-      expect(appRedirect(const AsyncLoading(), '/'), '/splash');
+      expect(appRedirect(const AsyncLoading(), '/'), '/splash?from=%2F');
       expect(appRedirect(const AsyncLoading(), '/splash'), isNull);
       expect(
         appRedirect(AsyncError(const ApiException(message: 'offline'), StackTrace.empty), '/login'),
-        '/splash',
+        '/splash?from=%2Flogin',
       );
+    });
+
+    test('remembers the page being opened and returns there after the session is restored', () {
+      expect(
+        appRedirect(const AsyncLoading(), '/service/abc/book'),
+        '/splash?from=%2Fservice%2Fabc%2Fbook',
+      );
+      expect(appRedirect(_signedIn(_customer), '/splash', from: '/service/abc/book'), '/service/abc/book');
+      expect(appRedirect(_signedIn(_customer), '/splash', from: '/bookings'), '/bookings');
+    });
+
+    test('ignores unsafe or forbidden remembered locations', () {
+      expect(appRedirect(_signedIn(_customer), '/splash', from: '/admin'), '/');
+      expect(appRedirect(_signedIn(_admin), '/splash', from: '/bookings'), '/admin');
+      expect(appRedirect(_signedIn(_customer), '/splash', from: '//evil.example'), '/');
+      expect(appRedirect(_signedIn(_customer), '/splash', from: '/login'), '/');
+      expect(appRedirect(_signedIn(_customer), '/splash', from: 'https://evil.example'), '/');
     });
 
     test('signed-out users can only see login and register', () {
