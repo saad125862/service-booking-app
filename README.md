@@ -17,7 +17,8 @@ Mobile app for **Seba**, a service booking and management platform. Customers br
 | Booking flow: date strip, live time slots, notes, confirmation (taken slots blocked, races handled) | Done |
 | My bookings: upcoming and past, status chips, details, cancel pending only | Done |
 | Profile: edit details and default address, change password, light/dark mode, sign out | Done |
-| Admin: add services with a dynamic form (custom fields), dashboard, sales reports | Planned |
+| Admin shell (sidebar, More menu), sales dashboard with charts, bookings management (status and payment verification) | Done |
+| Admin: services with a dynamic form (custom fields), payment options, discount decisions, sales reports | Next |
 | AI assistant chat (English, Bangla, Banglish), recommendation cards, discount requests that wait for an admin | Done |
 | Payment options at booking (cash, card, bKash, Nagad), price snapshot, one-order discounts | Done |
 | Left sidebar with sign out (drawer on phones), dark/light mode, in-app notifications | Done |
