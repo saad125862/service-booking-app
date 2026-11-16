@@ -17,6 +17,16 @@ class Formatters {
     return m == 0 ? '$h h' : '$h h $m min';
   }
 
+  /// "just now", "5 min ago", "2 h ago", "3 days ago", then the date.
+  static String timeAgo(DateTime time, {DateTime? now}) {
+    final diff = (now ?? DateTime.now()).difference(time);
+    if (diff.inMinutes < 1) return 'just now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes} min ago';
+    if (diff.inHours < 24) return '${diff.inHours} h ago';
+    if (diff.inDays < 7) return '${diff.inDays} day${diff.inDays == 1 ? '' : 's'} ago';
+    return DateFormat('MMM d, y').format(time);
+  }
+
   /// "Fri, Nov 20, 2026" style date.
   static String date(DateTime value) => DateFormat('EEE, MMM d, y').format(value);
 }
