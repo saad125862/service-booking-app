@@ -4,11 +4,17 @@ import '../../../core/providers.dart';
 import '../data/booking_repository.dart';
 import '../domain/appointment.dart';
 import '../domain/availability.dart';
+import '../domain/payment_method.dart';
 
 final bookingRepositoryProvider =
     Provider<BookingRepository>((ref) => BookingRepository(ref.watch(apiClientProvider)));
 
 enum BookingScope { upcoming, past }
+
+/// Payment options the customer can pick when booking.
+final paymentMethodsProvider = FutureProvider.autoDispose<List<PaymentMethod>>(
+  (ref) => ref.read(bookingRepositoryProvider).paymentMethods(),
+);
 
 /// The signed-in user's appointments for one tab of My Bookings.
 final myBookingsProvider = FutureProvider.autoDispose.family<List<Appointment>, BookingScope>(

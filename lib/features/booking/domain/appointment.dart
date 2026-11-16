@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme.dart';
+import 'payment_method.dart';
 
 enum AppointmentStatus {
   pending('Pending', Icons.hourglass_top_rounded),
@@ -52,6 +53,23 @@ class AppointmentService {
       );
 }
 
+/// The customer behind a booking (admin views only).
+class AppointmentCustomer {
+  const AppointmentCustomer({required this.id, required this.name, required this.email, this.phone});
+
+  final String id;
+  final String name;
+  final String email;
+  final String? phone;
+
+  factory AppointmentCustomer.fromJson(Map<String, dynamic> json) => AppointmentCustomer(
+        id: json['id'] as String,
+        name: json['name'] as String,
+        email: json['email'] as String,
+        phone: json['phone'] as String?,
+      );
+}
+
 class Appointment {
   const Appointment({
     required this.id,
@@ -63,6 +81,14 @@ class Appointment {
     this.address,
     this.notes,
     this.createdAt,
+    this.price = 0,
+    this.originalPrice = 0,
+    this.discountAmount = 0,
+    this.paymentStatus = PaymentStatus.unpaid,
+    this.paymentReference,
+    this.paidAt,
+    this.paymentMethod,
+    this.customer,
   });
 
   final String id;
@@ -80,6 +106,24 @@ class Appointment {
   final String? notes;
   final DateTime? createdAt;
 
+  /// Price snapshot taken when the booking was made, in BDT: what to pay, the list price
+  /// and the discount that was applied.
+  final double price;
+  final double originalPrice;
+  final double discountAmount;
+  final PaymentStatus paymentStatus;
+  final String? paymentReference;
+  final DateTime? paidAt;
+  final PaymentMethod? paymentMethod;
+
+  /// Set only in admin responses.
+  final AppointmentCustomer? customer;
+
+  bool get hasDiscount => discountAmount > 0;
+
+  /// What the customer pays. Bookings made before prices were snapshotted fall back to the service price.
+  double get amount => price > 0 ? price : service.price;
+
   bool get isPending => status == AppointmentStatus.pending;
 
   /// Short reference shown to the user.
@@ -95,5 +139,17 @@ class Appointment {
         notes: json['notes'] as String?,
         createdAt: json['createdAt'] == null ? null : DateTime.parse(json['createdAt'] as String),
         service: AppointmentService.fromJson(json['service'] as Map<String, dynamic>),
+        price: (json['price'] as num?)?.toDouble() ?? 0,
+        originalPrice: (json['originalPrice'] as num?)?.toDouble() ?? 0,
+        discountAmount: (json['discountAmount'] as num?)?.toDouble() ?? 0,
+        paymentStatus: PaymentStatus.parse(json['paymentStatus'] as String? ?? 'unpaid'),
+        paymentReference: json['paymentReference'] as String?,
+        paidAt: json['paidAt'] == null ? null : DateTime.parse(json['paidAt'] as String),
+        paymentMethod: json['paymentMethod'] == null
+            ? null
+            : PaymentMethod.fromJson(json['paymentMethod'] as Map<String, dynamic>),
+        customer: json['customer'] == null
+            ? null
+            : AppointmentCustomer.fromJson(json['customer'] as Map<String, dynamic>),
       );
 }
