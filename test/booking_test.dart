@@ -8,6 +8,9 @@ import 'package:seba_app/core/storage/token_storage.dart';
 import 'package:seba_app/features/booking/data/booking_repository.dart';
 import 'package:seba_app/features/booking/domain/appointment.dart';
 import 'package:seba_app/features/booking/domain/availability.dart';
+import 'package:seba_app/features/booking/domain/payment_method.dart';
+import 'package:seba_app/features/discounts/domain/discount_request.dart';
+import 'package:seba_app/features/discounts/presentation/discount_providers.dart';
 import 'package:seba_app/features/booking/presentation/booking_details_screen.dart';
 import 'package:seba_app/features/booking/presentation/booking_providers.dart';
 import 'package:seba_app/features/booking/presentation/booking_screen.dart';
@@ -54,6 +57,8 @@ class FakeBookingRepository extends BookingRepository {
   final ApiException? listError;
   final List<DateTime> created = [];
   final List<String> addresses = [];
+  final List<String> paymentMethodIds = [];
+  final List<String?> references = [];
   final List<String> cancelled = [];
   var availabilityCalls = 0;
 
@@ -62,6 +67,19 @@ class FakeBookingRepository extends BookingRepository {
     TimeSlot(start: DateTime.utc(2030, 1, 1, 4), end: DateTime.utc(2030, 1, 1, 5), label: '10:00 AM', available: false),
     TimeSlot(start: DateTime.utc(2030, 1, 1, 5), end: DateTime.utc(2030, 1, 1, 6), label: '11:00 AM', available: true),
   ];
+
+  static const cash = PaymentMethod(id: 'pm-cash', code: 'cash', name: 'Cash on service', type: PaymentType.cash);
+  static const bkash = PaymentMethod(
+    id: 'pm-bkash',
+    code: 'bkash',
+    name: 'bKash',
+    type: PaymentType.mobileWallet,
+    instructions: 'Send the amount to 01700-000000 (Personal), then enter the transaction ID.',
+    requiresReference: true,
+  );
+
+  @override
+  Future<List<PaymentMethod>> paymentMethods() async => const [cash, bkash];
 
   @override
   Future<Availability> availability(String serviceId, String date) async {
@@ -74,11 +92,15 @@ class FakeBookingRepository extends BookingRepository {
     required String serviceId,
     required DateTime startTime,
     required String address,
+    required String paymentMethodId,
+    String? paymentReference,
     String? notes,
   }) async {
     if (createError != null) throw createError!;
     created.add(startTime);
     addresses.add(address);
+    paymentMethodIds.add(paymentMethodId);
+    references.add(paymentReference);
     return _appointment();
   }
 
@@ -104,7 +126,7 @@ Future<void> _tallView(WidgetTester tester) async {
   addTearDown(tester.view.reset);
 }
 
-Widget _routerApp(FakeBookingRepository repo, Widget home) {
+Widget _routerApp(FakeBookingRepository repo, Widget home, {List<DiscountRequest> discounts = const []}) {
   final router = GoRouter(routes: [
     GoRoute(path: '/', builder: (_, _) => home),
     GoRoute(path: '/bookings', builder: (_, _) => const Text('bookings tab')),
@@ -112,7 +134,10 @@ Widget _routerApp(FakeBookingRepository repo, Widget home) {
     GoRoute(path: '/booking/:id', builder: (_, s) => Text('details ${s.pathParameters['id']}')),
   ]);
   return ProviderScope(
-    overrides: [bookingRepositoryProvider.overrideWithValue(repo)],
+    overrides: [
+      bookingRepositoryProvider.overrideWithValue(repo),
+      myDiscountsProvider.overrideWith((ref) async => discounts),
+    ],
     child: MaterialApp.router(routerConfig: router),
   );
 }
@@ -241,6 +266,101 @@ void main() {
       expect(find.text('Select a time'), findsWidgets);
       expect(repo.availabilityCalls, greaterThan(callsBefore));
       expect(repo.created, isEmpty);
+    });
+  });
+
+  group('payment and discount', () {
+    testWidgets('a cash booking sends the payment method and needs no transaction ID', (tester) async {
+      await _tallView(tester);
+      final repo = FakeBookingRepository();
+      await tester.pumpWidget(_routerApp(repo, const BookingScreen(serviceId: 'svc-1', service: _service)));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Cash on service'), findsOneWidget);
+      expect(find.text('bKash'), findsOneWidget);
+      await tester.tap(find.text('11:00 AM'));
+      await tester.pump();
+      await tester.enterText(find.widgetWithText(TextFormField, 'Where should we come?'), 'House 12, Road 5, Dhanmondi');
+      await tester.tap(find.text('Confirm booking'));
+      await tester.pumpAndSettle();
+
+      expect(repo.paymentMethodIds, ['pm-cash']);
+      expect(repo.references, [null]);
+    });
+
+    testWidgets('bKash shows its instructions and requires the transaction ID', (tester) async {
+      await _tallView(tester);
+      final repo = FakeBookingRepository();
+      await tester.pumpWidget(_routerApp(repo, const BookingScreen(serviceId: 'svc-1', service: _service)));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('bKash'));
+      await tester.pump();
+      expect(find.textContaining('01700-000000'), findsOneWidget);
+      expect(find.widgetWithText(TextFormField, 'bKash transaction ID'), findsOneWidget);
+
+      await tester.tap(find.text('9:00 AM'));
+      await tester.pump();
+      await tester.enterText(find.widgetWithText(TextFormField, 'Where should we come?'), 'House 12, Road 5, Dhanmondi');
+      await tester.tap(find.text('Confirm booking'));
+      await tester.pumpAndSettle();
+      expect(find.text('Enter the transaction ID after sending the money'), findsOneWidget);
+      expect(repo.created, isEmpty);
+
+      await tester.enterText(find.widgetWithText(TextFormField, 'bKash transaction ID'), 'TRX12345AB');
+      await tester.tap(find.text('Confirm booking'));
+      await tester.pumpAndSettle();
+      expect(repo.paymentMethodIds, ['pm-bkash']);
+      expect(repo.references, ['TRX12345AB']);
+    });
+
+    testWidgets('an approved discount for this service is shown and the discounted price is previewed', (tester) async {
+      await _tallView(tester);
+      final discount = DiscountRequest(
+        id: 'd1',
+        status: 'approved',
+        message: 'discount?',
+        language: 'en',
+        createdAt: DateTime(2026, 11, 16),
+        serviceId: 'svc-1',
+        serviceName: 'Swedish Massage',
+        discountType: 'percent',
+        discountValue: 20,
+      );
+      await tester.pumpWidget(_routerApp(
+        FakeBookingRepository(),
+        const BookingScreen(serviceId: 'svc-1', service: _service),
+        discounts: [discount],
+      ));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('20% off'), findsOneWidget);
+      expect(find.textContaining('this one order only'), findsOneWidget);
+      await tester.tap(find.text('9:00 AM'));
+      await tester.pump();
+      expect(find.text('৳2,500'), findsWidgets); // struck-through list price
+      expect(find.text('৳2,000'), findsOneWidget); // price after the discount
+    });
+
+    testWidgets('a discount for another service is not shown', (tester) async {
+      await _tallView(tester);
+      final other = DiscountRequest(
+        id: 'd2',
+        status: 'approved',
+        message: 'discount?',
+        language: 'en',
+        createdAt: DateTime(2026, 11, 16),
+        serviceId: 'someone-else',
+        discountType: 'percent',
+        discountValue: 20,
+      );
+      await tester.pumpWidget(_routerApp(
+        FakeBookingRepository(),
+        const BookingScreen(serviceId: 'svc-1', service: _service),
+        discounts: [other],
+      ));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('approved discount'), findsNothing);
     });
   });
 
