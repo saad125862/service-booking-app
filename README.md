@@ -6,6 +6,8 @@ Mobile app for **Seba**, a service booking and management platform. Customers br
 - **Overview and plan:** [service-booking-master](https://github.com/saad125862/service-booking-master)
 - **Stack:** Flutter 3.47 / Dart 3.13, Riverpod 3 (no code generation), go_router, dio, flutter_secure_storage
 
+**Download the Android APK:** [Seba v1.0.0](https://github.com/saad125862/service-booking-app/releases/tag/v1.0.0) (built against the live API; the login screen has one-tap Customer and Admin demo buttons).
+
 ## Progress
 
 | Feature | State |
@@ -24,6 +26,8 @@ Mobile app for **Seba**, a service booking and management platform. Customers br
 | AI assistant chat (English, Bangla, Banglish), recommendation cards, discount requests that wait for an admin | Done |
 | Payment options at booking (cash, card, bKash, Nagad), price snapshot, one-order discounts | Done |
 | Left sidebar with sign out (drawer on phones), dark/light mode, in-app notifications | Done |
+| Dark premium design and motion: page transitions, fading tabs, staggered lists, press feedback, skeleton loaders, animated charts, app icon | Done |
+| Release APK (v1.0.0, `kotlin.incremental=false`) published as a GitHub Release | Done |
 
 ## Run it
 
