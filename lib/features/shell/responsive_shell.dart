@@ -13,6 +13,7 @@ class ResponsiveShell extends StatefulWidget {
     required this.bottomItems,
     required this.currentIndex,
     required this.onSelect,
+    this.menuIndex,
   });
 
   final Widget body;
@@ -21,6 +22,9 @@ class ResponsiveShell extends StatefulWidget {
   final List<NavItem> bottomItems;
   final int currentIndex;
   final ValueChanged<int> onSelect;
+
+  /// A bottom-bar entry that opens the drawer instead of navigating (the admin "More" button).
+  final int? menuIndex;
 
   /// Width from which the permanent sidebar replaces the drawer.
   static const wideBreakpoint = 840.0;
@@ -61,7 +65,13 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
         body: widget.body,
         bottomNavigationBar: NavigationBar(
           selectedIndex: widget.currentIndex,
-          onDestinationSelected: widget.onSelect,
+          onDestinationSelected: (i) {
+            if (i == widget.menuIndex) {
+              _scaffoldKey.currentState?.openDrawer();
+            } else {
+              widget.onSelect(i);
+            }
+          },
           destinations: [
             for (final d in widget.bottomItems)
               NavigationDestination(icon: Icon(d.icon), selectedIcon: Icon(d.selectedIcon), label: d.label),

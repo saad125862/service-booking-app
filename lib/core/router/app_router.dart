@@ -1,8 +1,12 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../features/admin/presentation/admin_home_screen.dart';
+import '../../features/admin/presentation/admin_booking_detail_screen.dart';
+import '../../features/admin/presentation/admin_bookings_screen.dart';
+import '../../features/admin/presentation/admin_dashboard_screen.dart';
+import '../../features/admin/presentation/admin_placeholder_screen.dart';
+import '../../features/admin/presentation/admin_shell.dart';
 import '../../features/assistant/presentation/assistant_screen.dart';
 import '../../features/auth/domain/user.dart';
 import '../../features/auth/presentation/auth_controller.dart';
@@ -76,7 +80,78 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/splash', builder: (_, _) => const SplashScreen()),
       GoRoute(path: '/login', builder: (_, _) => const LoginScreen()),
       GoRoute(path: '/register', builder: (_, _) => const RegisterScreen()),
-      GoRoute(path: '/admin', builder: (_, _) => const AdminHomeScreen()),
+      StatefulShellRoute.indexedStack(
+        builder: (_, _, shell) => AdminShell(shell: shell),
+        branches: [
+          StatefulShellBranch(routes: [GoRoute(path: '/admin', builder: (_, _) => const AdminDashboardScreen())]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/admin/bookings',
+              builder: (_, _) => const AdminBookingsScreen(),
+              routes: [
+                GoRoute(
+                  path: ':id',
+                  builder: (_, state) => AdminBookingDetailScreen(
+                    bookingId: state.pathParameters['id']!,
+                    initial: state.extra as Appointment?,
+                  ),
+                ),
+              ],
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/admin/services',
+              builder: (_, _) => const AdminPlaceholderScreen(
+                title: 'Services',
+                icon: Icons.spa_outlined,
+                message: 'Add and edit services with the dynamic form.',
+              ),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/admin/discounts',
+              builder: (_, _) => const AdminPlaceholderScreen(
+                title: 'Discount requests',
+                icon: Icons.local_offer_outlined,
+                message: 'Approve or decline customers\' discount requests.',
+              ),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/admin/reports',
+              builder: (_, _) => const AdminPlaceholderScreen(
+                title: 'Sales reports',
+                icon: Icons.bar_chart_outlined,
+                message: 'Revenue by day, service, category and payment method.',
+              ),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/admin/payments',
+              builder: (_, _) => const AdminPlaceholderScreen(
+                title: 'Payment options',
+                icon: Icons.account_balance_wallet_outlined,
+                message: 'Manage cash, card, bKash, Nagad and more.',
+              ),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/admin/fields',
+              builder: (_, _) => const AdminPlaceholderScreen(
+                title: 'Custom fields',
+                icon: Icons.tune_outlined,
+                message: 'Extra fields for the add-service form.',
+              ),
+            ),
+          ]),
+          StatefulShellBranch(routes: [GoRoute(path: '/admin/profile', builder: (_, _) => const ProfileScreen())]),
+        ],
+      ),
       GoRoute(path: '/notifications', builder: (_, _) => const NotificationsScreen()),
       GoRoute(
         path: '/service/:id',

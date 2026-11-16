@@ -30,4 +30,17 @@ const adminNav = [
   NavItem('Profile', Icons.person_outline, Icons.person, '/admin/profile'),
 ];
 
+/// Admin bottom bar: the four everyday screens plus "More", which opens the sidebar drawer
+/// (reports, payment options, custom fields, profile, notifications, ...).
+const adminBottomNav = [
+  NavItem('Dashboard', Icons.dashboard_outlined, Icons.dashboard, '/admin'),
+  NavItem('Bookings', Icons.event_note_outlined, Icons.event_note, '/admin/bookings'),
+  NavItem('Services', Icons.spa_outlined, Icons.spa, '/admin/services'),
+  NavItem('Requests', Icons.local_offer_outlined, Icons.local_offer, '/admin/discounts'),
+  NavItem('More', Icons.menu, Icons.menu_open, ''),
+];
+
+/// Index of the "More" entry in [adminBottomNav].
+const adminMoreIndex = 4;
+
 List<NavItem> navItemsFor(User user) => user.isAdmin ? adminNav : customerNav;
