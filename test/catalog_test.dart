@@ -12,7 +12,10 @@ import 'package:seba_app/features/services/domain/service.dart';
 import 'package:seba_app/features/services/domain/service_filters.dart';
 import 'package:seba_app/features/services/presentation/home_screen.dart';
 import 'package:seba_app/features/services/presentation/service_details_screen.dart';
+import 'package:seba_app/features/notifications/presentation/notification_providers.dart';
 import 'package:seba_app/features/services/presentation/services_providers.dart';
+
+import 'test_helpers.dart';
 
 const _massage = Service(
   id: 'svc-1',
@@ -81,6 +84,7 @@ Widget _app(Widget home, FakeServiceRepository repo) => ProviderScope(
       overrides: [
         serviceRepositoryProvider.overrideWithValue(repo),
         authProvider.overrideWith(FakeAuth.new),
+        unreadCountProvider.overrideWith(FixedUnread.new),
       ],
       child: MaterialApp(home: home),
     );

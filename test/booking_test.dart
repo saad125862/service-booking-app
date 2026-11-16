@@ -15,7 +15,10 @@ import 'package:seba_app/features/booking/presentation/booking_details_screen.da
 import 'package:seba_app/features/booking/presentation/booking_providers.dart';
 import 'package:seba_app/features/booking/presentation/booking_screen.dart';
 import 'package:seba_app/features/bookings/presentation/bookings_screen.dart';
+import 'package:seba_app/features/notifications/presentation/notification_providers.dart';
 import 'package:seba_app/features/services/domain/service.dart';
+
+import 'test_helpers.dart';
 
 const _service = Service(
   id: 'svc-1',
@@ -137,6 +140,7 @@ Widget _routerApp(FakeBookingRepository repo, Widget home, {List<DiscountRequest
     overrides: [
       bookingRepositoryProvider.overrideWithValue(repo),
       myDiscountsProvider.overrideWith((ref) async => discounts),
+      unreadCountProvider.overrideWith(FixedUnread.new),
     ],
     child: MaterialApp.router(routerConfig: router),
   );

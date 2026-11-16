@@ -54,6 +54,13 @@ void main() {
       expect(appRedirect(_signedIn(_customer), '/admin'), '/');
     });
 
+    test('the notifications screen is open to both roles', () {
+      expect(appRedirect(_signedIn(_customer), '/notifications'), isNull);
+      expect(appRedirect(_signedIn(_admin), '/notifications'), isNull);
+      expect(appRedirect(_signedIn(_admin), '/splash', from: '/notifications'), '/notifications');
+      expect(appRedirect(_signedOut, '/notifications'), '/login');
+    });
+
     test('admins land on the admin area and stay inside it', () {
       expect(appRedirect(_signedIn(_admin), '/splash'), '/admin');
       expect(appRedirect(_signedIn(_admin), '/login'), '/admin');
