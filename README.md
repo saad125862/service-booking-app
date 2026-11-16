@@ -18,7 +18,9 @@ Mobile app for **Seba**, a service booking and management platform. Customers br
 | My bookings: upcoming and past, status chips, details, cancel pending only | Done |
 | Profile: edit details and default address, change password, light/dark mode, sign out | Done |
 | Admin shell (sidebar, More menu), sales dashboard with charts, bookings management (status and payment verification) | Done |
-| Admin: services with a dynamic form (custom fields), payment options, discount decisions, sales reports | Next |
+| Admin: services (search, hide / show) with a **dynamic add / edit form**: custom fields render by type and admins can add new fields on the spot; custom-field manager | Done |
+| Admin: payment options (cash, card, bKash, Nagad, online gateways), discount request approvals (percent or taka, validity, note), sales reports (by day, service, category, payment; copy CSV) | Done |
+| Online payment: Pay button on a booking opens the SSLCommerz / aamarPay checkout for the exact amount and waits for the server to confirm; the assistant sends the same link in chat | Done |
 | AI assistant chat (English, Bangla, Banglish), recommendation cards, discount requests that wait for an admin | Done |
 | Payment options at booking (cash, card, bKash, Nagad), price snapshot, one-order discounts | Done |
 | Left sidebar with sign out (drawer on phones), dark/light mode, in-app notifications | Done |
@@ -58,7 +60,7 @@ flutter analyze
 flutter test
 ```
 
-Covers the form validators (mirroring the backend rules), API error parsing and the login screen's validation.
+130 tests cover validators, API errors, login, routing and redirects, the catalog, booking, my bookings, the assistant (incl. discount waiting and pay links), notifications, the admin shell, dashboard, bookings, the dynamic service form, custom fields, payment options, discount approvals, sales reports and online payment. Repositories are replaced with fakes, so no server is needed.
 
 ## Architecture
 
