@@ -60,7 +60,7 @@ class BookingCard extends StatelessWidget {
                           StatusChip(status: a.status),
                           const Spacer(),
                           Text(
-                            Formatters.price(a.service.price),
+                            Formatters.price(a.amount),
                             style: theme.textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.w800,
                               color: scheme.primary,

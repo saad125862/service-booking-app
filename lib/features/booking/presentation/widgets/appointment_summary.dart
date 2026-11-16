@@ -44,7 +44,22 @@ class AppointmentSummary extends StatelessWidget {
                 const Divider(height: 28),
                 _Row(icon: Icons.event_outlined, label: 'When', value: a.startLabel),
                 _Row(icon: Icons.schedule, label: 'Duration', value: Formatters.duration(a.service.durationMinutes)),
-                _Row(icon: Icons.payments_outlined, label: 'Price', value: Formatters.price(a.service.price)),
+                _Row(
+                  icon: Icons.payments_outlined,
+                  label: 'Price',
+                  value: a.hasDiscount
+                      ? '${Formatters.price(a.amount)} (was ${Formatters.price(a.originalPrice)})'
+                      : Formatters.price(a.amount),
+                ),
+                if (a.hasDiscount)
+                  _Row(icon: Icons.local_offer_outlined, label: 'Discount', value: '-${Formatters.price(a.discountAmount)}'),
+                _Row(
+                  icon: a.paymentMethod?.type.icon ?? Icons.account_balance_wallet_outlined,
+                  label: 'Payment',
+                  value: '${a.paymentMethod?.name ?? 'Not selected'} · ${a.paymentStatus.label}',
+                ),
+                if (a.paymentReference != null && a.paymentReference!.isNotEmpty)
+                  _Row(icon: Icons.receipt_long_outlined, label: 'Transaction', value: a.paymentReference!),
                 if (a.address != null && a.address!.isNotEmpty)
                   _Row(icon: Icons.location_on_outlined, label: 'Address', value: a.address!),
                 if (a.notes != null && a.notes!.isNotEmpty)
