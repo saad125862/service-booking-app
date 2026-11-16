@@ -12,10 +12,12 @@ Mobile app for **Seba**, a service booking and management platform. Customers br
 |---|---|
 | Foundation: theme, API client, secure token storage, router, reusable widgets | Done |
 | Authentication: register, login, logout, validation, persistent session | Done |
+| Roles: customer and admin accounts, one-tap demo sign-in, role-based routing | Done |
 | Services catalog: home, search, category and price filters, sorting, featured, pagination, details | Done |
 | Booking flow: date and time slots, confirmation | Next |
 | My bookings: upcoming and past, details, cancel pending | Planned |
 | Profile: edit details, change password | Planned |
+| Admin: add services with a dynamic form (custom fields), dashboard, sales reports | Planned |
 | AI assistant (English, Bangla, Banglish) | Planned |
 
 ## Run it
@@ -37,7 +39,14 @@ flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000/api/v1
 flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:3000/api/v1
 ```
 
-Demo account: `demo@example.com` / `Demo@1234` (the login screen has a "Use the demo account" shortcut).
+Demo accounts (the login screen has one-tap **Customer** and **Admin** quick sign-in buttons):
+
+| Role | Email | Password |
+|---|---|---|
+| Customer | `demo@example.com` | `Demo@1234` |
+| Admin | `admin@example.com` | `Admin@1234` |
+
+Admins are routed to their own area; customers cannot open it. All prices are in **BDT** (Bangladeshi taka, ৳).
 
 ## Tests
 
