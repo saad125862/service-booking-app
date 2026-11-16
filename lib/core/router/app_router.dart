@@ -10,6 +10,9 @@ import '../../features/auth/presentation/splash_screen.dart';
 import '../../features/bookings/presentation/bookings_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/services/presentation/home_screen.dart';
+import '../../features/booking/presentation/booking_screen.dart';
+import '../../features/services/domain/service.dart';
+import '../../features/services/presentation/service_details_screen.dart';
 import '../../features/shell/home_shell.dart';
 
 const _authRoutes = {'/login', '/register'};
@@ -40,6 +43,22 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/splash', builder: (_, _) => const SplashScreen()),
       GoRoute(path: '/login', builder: (_, _) => const LoginScreen()),
       GoRoute(path: '/register', builder: (_, _) => const RegisterScreen()),
+      GoRoute(
+        path: '/service/:id',
+        builder: (_, state) => ServiceDetailsScreen(
+          serviceId: state.pathParameters['id']!,
+          initial: state.extra as Service?,
+        ),
+        routes: [
+          GoRoute(
+            path: 'book',
+            builder: (_, state) => BookingScreen(
+              serviceId: state.pathParameters['id']!,
+              service: state.extra as Service?,
+            ),
+          ),
+        ],
+      ),
       StatefulShellRoute.indexedStack(
         builder: (_, _, shell) => HomeShell(shell: shell),
         branches: [
