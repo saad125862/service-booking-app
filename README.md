@@ -14,8 +14,8 @@ Mobile app for **Seba**, a service booking and management platform. Customers br
 | Authentication: register, login, logout, validation, persistent session | Done |
 | Roles: customer and admin accounts, one-tap demo sign-in, role-based routing | Done |
 | Services catalog: home, search, category and price filters, sorting, featured, pagination, details | Done |
-| Booking flow: date and time slots, confirmation | Next |
-| My bookings: upcoming and past, details, cancel pending | Planned |
+| Booking flow: date strip, live time slots, notes, confirmation (taken slots blocked, races handled) | Done |
+| My bookings: upcoming and past, status chips, details, cancel pending only | Done |
 | Profile: edit details, change password | Planned |
 | Admin: add services with a dynamic form (custom fields), dashboard, sales reports | Planned |
 | AI assistant (English, Bangla, Banglish) | Planned |
