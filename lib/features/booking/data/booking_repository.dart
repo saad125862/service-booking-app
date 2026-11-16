@@ -17,12 +17,14 @@ class BookingRepository {
   Future<Appointment> create({
     required String serviceId,
     required DateTime startTime,
+    required String address,
     String? notes,
   }) async {
     final trimmed = notes?.trim() ?? '';
     final res = await _api.post('/appointments', data: {
       'serviceId': serviceId,
       'startTime': startTime.toUtc().toIso8601String(),
+      'address': address.trim(),
       if (trimmed.isNotEmpty) 'notes': trimmed,
     });
     return Appointment.fromJson(res.data as Map<String, dynamic>);

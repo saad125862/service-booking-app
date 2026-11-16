@@ -5,10 +5,12 @@ import 'package:intl/intl.dart';
 
 import '../../../core/network/api_exception.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/utils/validators.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/state_views.dart';
 import '../../../core/widgets/status_banner.dart';
+import '../../auth/presentation/auth_controller.dart';
 import '../../services/domain/service.dart';
 import '../../services/presentation/services_providers.dart';
 import '../../services/presentation/widgets/service_image.dart';
@@ -32,12 +34,29 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   late final DateTime _today = dateOnly(DateTime.now());
   late DateTime _date = _today;
   TimeSlot? _slot;
+  final _formKey = GlobalKey<FormState>();
+  final _address = TextEditingController();
+  final _addressFocus = FocusNode();
   final _notes = TextEditingController();
+  bool _saveAddress = true;
   bool _submitting = false;
   String? _error;
 
+  /// The address saved on the user's profile, used to prefill the form.
+  String get _profileAddress => ref.read(authProvider).value?.address?.trim() ?? '';
+
+  @override
+  void initState() {
+    super.initState();
+    _address.text = _profileAddress;
+    // Only offer to save when the profile has no address yet.
+    _saveAddress = _profileAddress.isEmpty;
+  }
+
   @override
   void dispose() {
+    _address.dispose();
+    _addressFocus.dispose();
     _notes.dispose();
     super.dispose();
   }
@@ -57,6 +76,10 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   Future<void> _confirm() async {
     final slot = _slot;
     if (slot == null || _submitting) return;
+    if (!_formKey.currentState!.validate()) {
+      _addressFocus.requestFocus(); // scrolls the field into view
+      return;
+    }
     FocusScope.of(context).unfocus();
     setState(() {
       _submitting = true;
@@ -66,9 +89,11 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
       final appointment = await ref.read(bookingRepositoryProvider).create(
             serviceId: widget.serviceId,
             startTime: slot.start,
+            address: _address.text,
             notes: _notes.text,
           );
       refreshBookings(ref);
+      _saveDefaultAddress();
       if (!mounted) return;
       context.go('/booking/${appointment.id}/confirmed', extra: appointment);
     } on ApiException catch (e) {
@@ -87,9 +112,17 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     }
   }
 
+  /// Saves the address to the profile (best effort) when the user asked for it.
+  void _saveDefaultAddress() {
+    final address = _address.text.trim();
+    if (!_saveAddress || address == _profileAddress) return;
+    ref.read(authProvider.notifier).updateProfile(address: address).catchError((_) {});
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final addressChanged = _address.text.trim() != _profileAddress && _address.text.trim().length >= 5;
     final fetched = ref.watch(serviceDetailProvider(widget.serviceId));
     final service = fetched.value ?? widget.service;
     final availability = ref.watch(availabilityProvider(_query));
@@ -168,6 +201,38 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                     style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                   ),
                 ),
+              const SizedBox(height: 20),
+              const _SectionTitle('Service address'),
+              Form(
+                key: _formKey,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    children: [
+                      AppTextField(
+                        controller: _address,
+                        focusNode: _addressFocus,
+                        label: 'Where should we come?',
+                        hint: 'House, road, area, city',
+                        prefixIcon: Icons.location_on_outlined,
+                        keyboardType: TextInputType.streetAddress,
+                        maxLines: 2,
+                        maxLength: 300,
+                        validator: Validators.address,
+                        enabled: !_submitting,
+                        onChanged: (_) => setState(() {}),
+                      ),
+                      if (addressChanged)
+                        SwitchListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: const Text('Save as my default address'),
+                          value: _saveAddress,
+                          onChanged: _submitting ? null : (v) => setState(() => _saveAddress = v),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
               const SizedBox(height: 20),
               const _SectionTitle('Notes (optional)'),
               Padding(

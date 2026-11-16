@@ -34,8 +34,8 @@ class AuthController extends AsyncNotifier<User?> {
     state = AsyncData(user);
   }
 
-  Future<void> updateProfile({String? name, String? phone}) async {
-    final user = await _repo.updateProfile(name: name, phone: phone);
+  Future<void> updateProfile({String? name, String? phone, String? address}) async {
+    final user = await _repo.updateProfile(name: name, phone: phone, address: address);
     state = AsyncData(user);
   }
 

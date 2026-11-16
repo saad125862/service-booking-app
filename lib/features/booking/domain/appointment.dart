@@ -60,6 +60,7 @@ class Appointment {
     required this.endTime,
     required this.startLabel,
     required this.service,
+    this.address,
     this.notes,
     this.createdAt,
   });
@@ -73,6 +74,9 @@ class Appointment {
   /// e.g. "Fri, Nov 20, 2026, 10:00 AM", so every device shows the same time.
   final String startLabel;
   final AppointmentService service;
+
+  /// Where the service takes place (null for bookings made before addresses existed).
+  final String? address;
   final String? notes;
   final DateTime? createdAt;
 
@@ -87,6 +91,7 @@ class Appointment {
         startTime: DateTime.parse(json['startTime'] as String),
         endTime: DateTime.parse(json['endTime'] as String),
         startLabel: json['startLabel'] as String,
+        address: json['address'] as String?,
         notes: json['notes'] as String?,
         createdAt: json['createdAt'] == null ? null : DateTime.parse(json['createdAt'] as String),
         service: AppointmentService.fromJson(json['service'] as Map<String, dynamic>),

@@ -17,6 +17,8 @@ class AppTextField extends StatefulWidget {
     this.onSubmitted,
     this.maxLines = 1,
     this.maxLength,
+    this.focusNode,
+    this.onChanged,
   });
 
   final TextEditingController controller;
@@ -32,6 +34,8 @@ class AppTextField extends StatefulWidget {
   final ValueChanged<String>? onSubmitted;
   final int maxLines;
   final int? maxLength;
+  final FocusNode? focusNode;
+  final ValueChanged<String>? onChanged;
 
   @override
   State<AppTextField> createState() => _AppTextFieldState();
@@ -44,6 +48,8 @@ class _AppTextFieldState extends State<AppTextField> {
   Widget build(BuildContext context) {
     return TextFormField(
       controller: widget.controller,
+      focusNode: widget.focusNode,
+      onChanged: widget.onChanged,
       enabled: widget.enabled,
       obscureText: _hidden,
       validator: widget.validator,

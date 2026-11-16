@@ -5,6 +5,7 @@ class User {
     required this.email,
     this.role = 'user',
     this.phone,
+    this.address,
     this.createdAt,
   });
 
@@ -12,6 +13,9 @@ class User {
   final String name;
   final String email;
   final String? phone;
+
+  /// Default service address, used to prefill bookings.
+  final String? address;
 
   /// `user` (customer) or `admin`.
   final String role;
@@ -24,6 +28,7 @@ class User {
         name: json['name'] as String,
         email: json['email'] as String,
         phone: json['phone'] as String?,
+        address: json['address'] as String?,
         role: json['role'] as String? ?? 'user',
         createdAt: json['createdAt'] == null ? null : DateTime.parse(json['createdAt'] as String),
       );

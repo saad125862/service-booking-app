@@ -45,6 +45,8 @@ class AppointmentSummary extends StatelessWidget {
                 _Row(icon: Icons.event_outlined, label: 'When', value: a.startLabel),
                 _Row(icon: Icons.schedule, label: 'Duration', value: Formatters.duration(a.service.durationMinutes)),
                 _Row(icon: Icons.payments_outlined, label: 'Price', value: Formatters.price(a.service.price)),
+                if (a.address != null && a.address!.isNotEmpty)
+                  _Row(icon: Icons.location_on_outlined, label: 'Address', value: a.address!),
                 if (a.notes != null && a.notes!.isNotEmpty)
                   _Row(icon: Icons.notes_outlined, label: 'Notes', value: a.notes!),
                 _Row(icon: Icons.tag, label: 'Reference', value: a.reference),

@@ -53,6 +53,7 @@ class FakeBookingRepository extends BookingRepository {
   final ApiException? createError;
   final ApiException? listError;
   final List<DateTime> created = [];
+  final List<String> addresses = [];
   final List<String> cancelled = [];
   var availabilityCalls = 0;
 
@@ -69,9 +70,15 @@ class FakeBookingRepository extends BookingRepository {
   }
 
   @override
-  Future<Appointment> create({required String serviceId, required DateTime startTime, String? notes}) async {
+  Future<Appointment> create({
+    required String serviceId,
+    required DateTime startTime,
+    required String address,
+    String? notes,
+  }) async {
     if (createError != null) throw createError!;
     created.add(startTime);
+    addresses.add(address);
     return _appointment();
   }
 
@@ -120,6 +127,7 @@ void main() {
         'endTime': '2030-01-01T05:00:00.000Z',
         'startLabel': 'Tue, Jan 1, 2030, 10:00 AM',
         'timeZone': 'Asia/Dhaka',
+        'address': 'House 12, Dhanmondi',
         'notes': null,
         'createdAt': '2026-11-16T10:00:00.000Z',
         'service': {
@@ -135,6 +143,7 @@ void main() {
       expect(a.isPending, isFalse);
       expect(a.reference, '5D85757B');
       expect(a.service.price, 1200.0);
+      expect(a.address, 'House 12, Dhanmondi');
     });
 
     test('unknown statuses fall back to pending', () {
@@ -185,11 +194,28 @@ void main() {
 
       await tester.tap(find.text('11:00 AM'));
       await tester.pump();
+      await tester.enterText(find.widgetWithText(TextFormField, 'Where should we come?'), 'House 12, Road 5, Dhanmondi');
       await tester.tap(find.text('Confirm booking'));
       await tester.pumpAndSettle();
 
       expect(repo.created, [DateTime.utc(2030, 1, 1, 5)]);
+      expect(repo.addresses, ['House 12, Road 5, Dhanmondi']);
       expect(find.text('confirmed abcdef12-0000'), findsOneWidget);
+    });
+
+    testWidgets('an address is required before booking', (tester) async {
+      await _tallView(tester);
+      final repo = FakeBookingRepository();
+      await tester.pumpWidget(_routerApp(repo, const BookingScreen(serviceId: 'svc-1', service: _service)));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('9:00 AM'));
+      await tester.pump();
+      await tester.tap(find.text('Confirm booking'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Enter the address where we should come'), findsOneWidget);
+      expect(repo.created, isEmpty);
     });
 
     testWidgets('a slot that was just taken shows the reason, clears the choice and reloads slots', (tester) async {
@@ -207,6 +233,7 @@ void main() {
 
       await tester.tap(find.text('9:00 AM'));
       await tester.pump();
+      await tester.enterText(find.widgetWithText(TextFormField, 'Where should we come?'), 'House 12, Road 5, Dhanmondi');
       await tester.tap(find.text('Confirm booking'));
       await tester.pumpAndSettle();
 

@@ -45,10 +45,11 @@ class AuthRepository {
     }
   }
 
-  Future<User> updateProfile({String? name, String? phone}) async {
+  Future<User> updateProfile({String? name, String? phone, String? address}) async {
     final res = await _api.patch('/users/me', data: {
       if (name != null) 'name': name.trim(),
       if (phone != null) 'phone': phone.trim(),
+      if (address != null) 'address': address.trim(),
     });
     return User.fromJson(res.data as Map<String, dynamic>);
   }

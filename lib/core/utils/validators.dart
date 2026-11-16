@@ -42,6 +42,15 @@ class Validators {
         return null;
       };
 
+  /// Service address for a booking: at least 5 characters.
+  static String? address(String? value) {
+    final v = value?.trim() ?? '';
+    if (v.isEmpty) return 'Enter the address where we should come';
+    if (v.length < 5) return 'Enter the full address';
+    if (v.length > 300) return 'Address is too long';
+    return null;
+  }
+
   /// Optional phone: digits, spaces, +, (), - (6-30 chars).
   static String? phone(String? value) {
     final v = value?.trim() ?? '';
