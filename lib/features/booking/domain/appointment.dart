@@ -127,7 +127,7 @@ class Appointment {
   bool get isPending => status == AppointmentStatus.pending;
 
   /// Short reference shown to the user.
-  String get reference => id.substring(0, 8).toUpperCase();
+  String get reference => (id.length > 8 ? id.substring(0, 8) : id).toUpperCase();
 
   factory Appointment.fromJson(Map<String, dynamic> json) => Appointment(
         id: json['id'] as String,
