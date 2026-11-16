@@ -146,8 +146,12 @@ class AppSidebar extends ConsumerWidget {
                 label: 'Sign out',
                 color: scheme.error,
                 onTap: () async {
-                  if (inDrawer) Navigator.of(context).pop();
-                  await confirmSignOut(context, ref);
+                  // Ask first, while the drawer (and this context) is still alive. Closing the drawer
+                  // before the dialog would leave the dialog and the sign-out without a valid context.
+                  final auth = ref.read(authProvider.notifier);
+                  if (!await askSignOut(context)) return;
+                  if (inDrawer && context.mounted) Navigator.of(context).pop();
+                  await auth.logout();
                 },
               ),
             ),

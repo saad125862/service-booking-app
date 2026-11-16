@@ -145,6 +145,30 @@ void main() {
     expect(SignedInAuth.logouts, 1);
   });
 
+  testWidgets('phones: Sign out in the sidebar drawer confirms and signs out (the drawer closes with it)', (tester) async {
+    _size(tester, const Size(400, 800));
+    await tester.pumpWidget(_app(_customer));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Menu'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Sign out'));
+    await tester.pumpAndSettle();
+    expect(find.text('Sign out?'), findsOneWidget);
+
+    // Backing out keeps the user signed in.
+    await tester.tap(find.text('Stay signed in'));
+    await tester.pumpAndSettle();
+    expect(SignedInAuth.logouts, 0);
+
+    await tester.tap(find.text('Sign out'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Sign out'));
+    await tester.pumpAndSettle();
+    expect(SignedInAuth.logouts, 1);
+    expect(find.text('Sign out?'), findsNothing);
+  });
+
   testWidgets('the sidebar opens the notifications page', (tester) async {
     _size(tester, const Size(1200, 800));
     await tester.pumpWidget(_app(_customer));

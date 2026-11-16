@@ -3,8 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'auth_controller.dart';
 
-/// Asks for confirmation, then signs the user out. The router sends them to the login screen.
-Future<void> confirmSignOut(BuildContext context, WidgetRef ref) async {
+/// Asks "Sign out?" and returns true only when the user confirms. Call it with a context that is still
+/// mounted when the dialog opens (e.g. before a drawer is closed).
+Future<bool> askSignOut(BuildContext context) async {
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
@@ -21,5 +22,11 @@ Future<void> confirmSignOut(BuildContext context, WidgetRef ref) async {
       ],
     ),
   );
-  if (confirmed == true) await ref.read(authProvider.notifier).logout();
+  return confirmed == true;
+}
+
+/// Asks for confirmation, then signs the user out. The router sends them to the login screen.
+Future<void> confirmSignOut(BuildContext context, WidgetRef ref) async {
+  final auth = ref.read(authProvider.notifier);
+  if (await askSignOut(context)) await auth.logout();
 }
