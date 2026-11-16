@@ -32,24 +32,26 @@ class SignedInAuth extends AuthController {
 }
 
 Widget _app(User user, {int unread = 0}) {
-  final router = GoRouter(routes: [
-    GoRoute(
-      path: '/',
-      builder: (_, _) => ResponsiveShell(
-        bottomItems: customerNav,
-        currentIndex: 0,
-        onSelect: (_) {},
-        body: Builder(
-          builder: (context) => Scaffold(
-            appBar: AppBar(title: const Text('Home'), leading: shellMenuLeading(context)),
-            body: const Center(child: Text('content')),
+  final router = GoRouter(
+    routes: [
+      GoRoute(
+        path: '/',
+        builder: (_, _) => ResponsiveShell(
+          bottomItems: customerNav,
+          currentIndex: 0,
+          onSelect: (_) {},
+          body: Builder(
+            builder: (context) => Scaffold(
+              appBar: AppBar(title: const Text('Home'), leading: shellMenuLeading(context)),
+              body: const Center(child: Text('content')),
+            ),
           ),
         ),
       ),
-    ),
-    GoRoute(path: '/notifications', builder: (_, _) => const Text('notifications page')),
-    GoRoute(path: '/bookings', builder: (_, _) => const Text('bookings page')),
-  ]);
+      GoRoute(path: '/notifications', builder: (_, _) => const Text('notifications page')),
+      GoRoute(path: '/bookings', builder: (_, _) => const Text('bookings page')),
+    ],
+  );
   return ProviderScope(
     overrides: [
       authProvider.overrideWith(() => SignedInAuth(user)),
@@ -109,7 +111,15 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Admin'), findsOneWidget);
-    for (final label in ['Dashboard', 'Bookings', 'Services', 'Discount requests', 'Sales reports', 'Payment options', 'Custom fields']) {
+    for (final label in [
+      'Dashboard',
+      'Bookings',
+      'Services',
+      'Discount requests',
+      'Sales reports',
+      'Payment options',
+      'Custom fields',
+    ]) {
       expect(find.text(label), findsOneWidget);
     }
     expect(find.text('My bookings'), findsNothing);
@@ -148,49 +158,52 @@ void main() {
   group('dark / light mode', () {
     testWidgets('the selector changes the theme mode and remembers it', (tester) async {
       _size(tester, const Size(1200, 800));
-      final container = ProviderContainer(overrides: [
-        authProvider.overrideWith(() => SignedInAuth(_customer)),
-        unreadCountProvider.overrideWith(FixedUnread.new),
-      ]);
+      final container = ProviderContainer(
+        overrides: [
+          authProvider.overrideWith(() => SignedInAuth(_customer)),
+          unreadCountProvider.overrideWith(FixedUnread.new),
+        ],
+      );
       addTearDown(container.dispose);
-      final router = GoRouter(routes: [
-        GoRoute(
-          path: '/',
-          builder: (_, _) => ResponsiveShell(
-            bottomItems: customerNav,
-            currentIndex: 0,
-            onSelect: (_) {},
-            body: const SizedBox(),
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, _) =>
+                ResponsiveShell(bottomItems: customerNav, currentIndex: 0, onSelect: (_) {}, body: const SizedBox()),
           ),
+        ],
+      );
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp.router(routerConfig: router),
         ),
-      ]);
-      await tester.pumpWidget(UncontrolledProviderScope(
-        container: container,
-        child: MaterialApp.router(routerConfig: router),
-      ));
+      );
       await tester.pumpAndSettle();
 
-      expect(container.read(themeModeProvider), ThemeMode.system);
-      await tester.tap(find.byTooltip('Dark mode'));
-      await tester.pumpAndSettle();
+      // New installs start in the dark premium look.
       expect(container.read(themeModeProvider), ThemeMode.dark);
-
-      final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getString('seba_theme_mode'), 'dark');
-
       await tester.tap(find.byTooltip('Light mode'));
       await tester.pumpAndSettle();
       expect(container.read(themeModeProvider), ThemeMode.light);
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('seba_theme_mode'), 'light');
+
+      await tester.tap(find.byTooltip('Dark mode'));
+      await tester.pumpAndSettle();
+      expect(container.read(themeModeProvider), ThemeMode.dark);
     });
 
     test('a saved choice is restored on the next launch', () async {
-      SharedPreferences.setMockInitialValues({'seba_theme_mode': 'dark'});
+      SharedPreferences.setMockInitialValues({'seba_theme_mode': 'light'});
       final container = ProviderContainer();
       addTearDown(container.dispose);
 
       container.read(themeModeProvider); // starts loading
       await Future<void>.delayed(const Duration(milliseconds: 50));
-      expect(container.read(themeModeProvider), ThemeMode.dark);
+      expect(container.read(themeModeProvider), ThemeMode.light);
     });
   });
 }

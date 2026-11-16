@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/network/api_exception.dart';
+import '../../../core/widgets/motion.dart';
 import '../../../core/widgets/state_views.dart';
 import '../../booking/presentation/booking_providers.dart';
 import '../../notifications/presentation/notification_bell.dart';
@@ -81,9 +82,14 @@ class _BookingList extends ConsumerWidget {
                 padding: const EdgeInsets.all(16),
                 itemCount: items.length,
                 separatorBuilder: (_, _) => const SizedBox(height: 12),
-                itemBuilder: (context, i) => BookingCard(
-                  appointment: items[i],
-                  onTap: () => context.push('/booking/${items[i].id}', extra: items[i]),
+                itemBuilder: (context, i) => Reveal(
+                  index: i,
+                  child: PressScale(
+                    child: BookingCard(
+                      appointment: items[i],
+                      onTap: () => context.push('/booking/${items[i].id}', extra: items[i]),
+                    ),
+                  ),
                 ),
               ),
             ),

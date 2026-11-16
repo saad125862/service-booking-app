@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/widgets/motion.dart';
+
 import '../../../core/network/api_exception.dart';
 import '../../../core/widgets/state_views.dart';
 import '../../auth/presentation/auth_controller.dart';
@@ -134,7 +136,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             mainAxisSpacing: 12,
           ),
           delegate: SliverChildBuilderDelegate(
-            (context, i) => ServiceListTile(service: data.items[i], onTap: () => _open(data.items[i])),
+            (context, i) => Reveal(
+              index: i % 10,
+              child: PressScale(child: ServiceListTile(service: data.items[i], onTap: () => _open(data.items[i]))),
+            ),
             childCount: data.items.length,
           ),
         ),
@@ -281,9 +286,14 @@ class _FeaturedSection extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             itemCount: items.length,
             separatorBuilder: (_, _) => const SizedBox(width: 12),
-            itemBuilder: (context, i) => FeaturedServiceCard(
-              service: items[i],
-              onTap: () => context.push('/service/${items[i].id}', extra: items[i]),
+            itemBuilder: (context, i) => Reveal(
+              index: i,
+              child: PressScale(
+                child: FeaturedServiceCard(
+                  service: items[i],
+                  onTap: () => context.push('/service/${items[i].id}', extra: items[i]),
+                ),
+              ),
             ),
           ),
         ),

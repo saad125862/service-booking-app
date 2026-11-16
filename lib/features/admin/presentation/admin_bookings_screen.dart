@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/network/api_exception.dart';
+import '../../../core/widgets/motion.dart';
 import '../../../core/widgets/state_views.dart';
 import '../../notifications/presentation/notification_bell.dart';
 import '../../shell/shell_scope.dart';
@@ -109,9 +110,14 @@ class _AdminBookingsScreenState extends ConsumerState<AdminBookingsScreen> {
         sliver: SliverList.separated(
           itemCount: data.items.length,
           separatorBuilder: (_, _) => const SizedBox(height: 12),
-          itemBuilder: (context, i) => AdminBookingCard(
-            appointment: data.items[i],
-            onTap: () => context.go('/admin/bookings/${data.items[i].id}', extra: data.items[i]),
+          itemBuilder: (context, i) => Reveal(
+            index: i,
+            child: PressScale(
+              child: AdminBookingCard(
+                appointment: data.items[i],
+                onTap: () => context.go('/admin/bookings/${data.items[i].id}', extra: data.items[i]),
+              ),
+            ),
           ),
         ),
       );

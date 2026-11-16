@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/utils/formatters.dart';
+import '../../../../core/widgets/motion.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../domain/dashboard.dart';
 
 /// Revenue per day as simple bars (no chart library): the tallest bar is the best day.
@@ -21,7 +23,10 @@ class DailySalesChart extends StatelessWidget {
       return SizedBox(
         height: height,
         child: Center(
-          child: Text('No sales in the last ${daily.length} days yet', style: TextStyle(color: scheme.onSurfaceVariant)),
+          child: Text(
+            'No sales in the last ${daily.length} days yet',
+            style: TextStyle(color: scheme.onSurfaceVariant),
+          ),
         ),
       );
     }
@@ -36,12 +41,14 @@ class DailySalesChart extends StatelessWidget {
             for (var i = 0; i < daily.length; i++)
               Expanded(
                 child: Tooltip(
-                  message: '${DateFormat('EEE d MMM').format(daily[i].date)}\n'
+                  message:
+                      '${DateFormat('EEE d MMM').format(daily[i].date)}\n'
                       '${Formatters.price(daily[i].revenue)} · ${daily[i].bookings} booking${daily[i].bookings == 1 ? '' : 's'}',
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      Container(
+                      _GrowingBar(
+                        index: i,
                         height: daily[i].revenue == 0 ? 3 : (daily[i].revenue / maxRevenue) * height,
                         margin: const EdgeInsets.symmetric(horizontal: 2),
                         decoration: BoxDecoration(
@@ -91,7 +98,12 @@ class HorizontalBars extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+                      child: Text(
+                        label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                      ),
                     ),
                     Text(caption, style: theme.textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant)),
                   ],
@@ -99,10 +111,15 @@ class HorizontalBars extends StatelessWidget {
                 const SizedBox(height: 6),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(6),
-                  child: LinearProgressIndicator(
-                    value: maxValue == 0 ? 0 : value / maxValue,
-                    minHeight: 8,
-                    backgroundColor: scheme.surfaceContainerHighest,
+                  child: TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0, end: maxValue == 0 ? 0 : value / maxValue),
+                    duration: AppMotion.slow,
+                    curve: AppMotion.emphasized,
+                    builder: (_, v, _) => LinearProgressIndicator(
+                      value: v,
+                      minHeight: 8,
+                      backgroundColor: scheme.surfaceContainerHighest,
+                    ),
                   ),
                 ),
               ],
@@ -115,11 +132,22 @@ class HorizontalBars extends StatelessWidget {
 
 /// One stat tile: icon, big number, label and a small note.
 class StatCard extends StatelessWidget {
-  const StatCard({super.key, required this.icon, required this.label, required this.value, this.note, this.onTap});
+  const StatCard({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.amount,
+    this.note,
+    this.onTap,
+  });
 
   final IconData icon;
   final String label;
   final String value;
+
+  /// When set, the big number counts up to this amount (formatted as taka) instead of showing [value].
+  final double? amount;
   final String? note;
   final VoidCallback? onTap;
 
@@ -144,14 +172,22 @@ class StatCard extends StatelessWidget {
                     child: Icon(icon, size: 18, color: scheme.onPrimaryContainer),
                   ),
                   const SizedBox(width: 10),
-                  Expanded(child: Text(label, style: theme.textTheme.labelLarge?.copyWith(color: scheme.onSurfaceVariant))),
+                  Expanded(
+                    child: Text(label, style: theme.textTheme.labelLarge?.copyWith(color: scheme.onSurfaceVariant)),
+                  ),
                 ],
               ),
               const SizedBox(height: 12),
               FittedBox(
                 fit: BoxFit.scaleDown,
                 alignment: Alignment.centerLeft,
-                child: Text(value, style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800)),
+                child: amount == null
+                    ? Text(value, style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800))
+                    : CountUp(
+                        value: amount!,
+                        format: Formatters.price,
+                        style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+                      ),
               ),
               if (note != null) ...[
                 const SizedBox(height: 2),
@@ -161,6 +197,27 @@ class StatCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// A chart bar that grows up from the baseline, each one a little after the one before.
+class _GrowingBar extends StatelessWidget {
+  const _GrowingBar({required this.index, required this.height, required this.margin, required this.decoration});
+
+  final int index;
+  final double height;
+  final EdgeInsets margin;
+  final BoxDecoration decoration;
+
+  @override
+  Widget build(BuildContext context) {
+    if (reduceMotion(context)) return Container(height: height, margin: margin, decoration: decoration);
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: height),
+      duration: Duration(milliseconds: 420 + 30 * index),
+      curve: AppMotion.emphasized,
+      builder: (_, h, _) => Container(height: h, margin: margin, decoration: decoration),
     );
   }
 }

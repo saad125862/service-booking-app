@@ -1,24 +1,52 @@
 import 'package:flutter/material.dart';
 
 import 'app_button.dart';
+import 'motion.dart';
 
-/// Centered spinner for loading states.
+/// Loading state: soft shimmering placeholder rows that fill the space (instead of a lone spinner),
+/// so the screen already looks like what is about to appear. [message] is read by screen readers.
 class LoadingView extends StatelessWidget {
   const LoadingView({super.key, this.message});
   final String? message;
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const CircularProgressIndicator(),
-          if (message != null) ...[
-            const SizedBox(height: 16),
-            Text(message!, style: Theme.of(context).textTheme.bodyMedium),
-          ],
-        ],
+    return Semantics(
+      label: message ?? 'Loading',
+      liveRegion: true,
+      child: LayoutBuilder(
+        builder: (context, c) {
+          const rowHeight = 104.0; // a row plus its gap
+          final rows = c.hasBoundedHeight ? ((c.maxHeight - 16) / rowHeight).floor().clamp(0, 6) : 4;
+          if (rows == 0) {
+            return const Center(
+              child: SizedBox(width: 26, height: 26, child: CircularProgressIndicator(strokeWidth: 3)),
+            );
+          }
+          return Align(
+            alignment: Alignment.topCenter,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 720),
+              child: ExcludeSemantics(
+                child: Shimmer(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        for (var i = 0; i < rows; i++)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: Reveal(index: i, dy: 8, child: const SkeletonRow()),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -26,14 +54,7 @@ class LoadingView extends StatelessWidget {
 
 /// Friendly empty state, optionally with an action.
 class EmptyView extends StatelessWidget {
-  const EmptyView({
-    super.key,
-    required this.icon,
-    required this.title,
-    this.message,
-    this.actionLabel,
-    this.onAction,
-  });
+  const EmptyView({super.key, required this.icon, required this.title, this.message, this.actionLabel, this.onAction});
 
   final IconData icon;
   final String title;
@@ -42,13 +63,8 @@ class EmptyView extends StatelessWidget {
   final VoidCallback? onAction;
 
   @override
-  Widget build(BuildContext context) => _MessageView(
-        icon: icon,
-        title: title,
-        message: message,
-        actionLabel: actionLabel,
-        onAction: onAction,
-      );
+  Widget build(BuildContext context) =>
+      _MessageView(icon: icon, title: title, message: message, actionLabel: actionLabel, onAction: onAction);
 }
 
 /// Error state with a retry button.
@@ -61,13 +77,13 @@ class ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => _MessageView(
-        icon: Icons.cloud_off_outlined,
-        title: title,
-        message: message,
-        actionLabel: onRetry == null ? null : 'Try again',
-        onAction: onRetry,
-        isError: true,
-      );
+    icon: Icons.cloud_off_outlined,
+    title: title,
+    message: message,
+    actionLabel: onRetry == null ? null : 'Try again',
+    onAction: onRetry,
+    isError: true,
+  );
 }
 
 class _MessageView extends StatelessWidget {
@@ -104,11 +120,7 @@ class _MessageView extends StatelessWidget {
                   color: isError ? scheme.errorContainer : scheme.primaryContainer,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  icon,
-                  size: 36,
-                  color: isError ? scheme.onErrorContainer : scheme.onPrimaryContainer,
-                ),
+                child: Icon(icon, size: 36, color: isError ? scheme.onErrorContainer : scheme.onPrimaryContainer),
               ),
               const SizedBox(height: 20),
               Text(
@@ -121,10 +133,7 @@ class _MessageView extends StatelessWidget {
                 Text(
                   message!,
                   textAlign: TextAlign.center,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyMedium
-                      ?.copyWith(color: scheme.onSurfaceVariant, height: 1.4),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant, height: 1.4),
                 ),
               ],
               if (actionLabel != null && onAction != null) ...[

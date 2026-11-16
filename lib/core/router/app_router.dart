@@ -29,8 +29,13 @@ import '../../features/booking/presentation/booking_screen.dart';
 import '../../features/services/domain/service.dart';
 import '../../features/services/presentation/service_details_screen.dart';
 import '../../features/shell/home_shell.dart';
+import '../widgets/motion.dart';
 
 const _authRoutes = {'/login', '/register'};
+
+/// Tabs fade in when selected (state of every visited tab is still kept).
+Widget _fadeBranches(BuildContext context, StatefulNavigationShell shell, List<Widget> children) =>
+    BranchFader(currentIndex: shell.currentIndex, children: children);
 
 /// Screens both customers and admins may open.
 const _sharedRoutes = {'/notifications'};
@@ -82,8 +87,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/splash', builder: (_, _) => const SplashScreen()),
       GoRoute(path: '/login', builder: (_, _) => const LoginScreen()),
       GoRoute(path: '/register', builder: (_, _) => const RegisterScreen()),
-      StatefulShellRoute.indexedStack(
+      StatefulShellRoute(
         builder: (_, _, shell) => AdminShell(shell: shell),
+        navigatorContainerBuilder: _fadeBranches,
         branches: [
           StatefulShellBranch(
             routes: [GoRoute(path: '/admin', builder: (_, _) => const AdminDashboardScreen())],
@@ -165,8 +171,9 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ],
       ),
-      StatefulShellRoute.indexedStack(
+      StatefulShellRoute(
         builder: (_, _, shell) => HomeShell(shell: shell),
+        navigatorContainerBuilder: _fadeBranches,
         branches: [
           StatefulShellBranch(
             routes: [GoRoute(path: '/', builder: (_, _) => const HomeScreen())],

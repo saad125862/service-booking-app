@@ -28,7 +28,7 @@ class ServiceListTile extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  ServiceImage(url: service.imageUrl),
+                  Hero(tag: 'service-img-${service.id}', child: ServiceImage(url: service.imageUrl)),
                   if (service.isFeatured)
                     Positioned(
                       top: 8,

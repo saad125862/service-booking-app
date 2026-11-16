@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// The user's light / dark / system choice, remembered between launches.
+/// The user's light / dark / system choice, remembered between launches. New installs start in
+/// the dark premium look.
 class ThemeController extends Notifier<ThemeMode> {
   static const _key = 'seba_theme_mode';
 
   @override
   ThemeMode build() {
     _load();
-    return ThemeMode.system;
+    return ThemeMode.dark;
   }
 
   Future<void> _load() async {
@@ -19,7 +20,7 @@ class ThemeController extends Notifier<ThemeMode> {
       final mode = ThemeMode.values.where((m) => m.name == saved).firstOrNull;
       if (mode != null && ref.mounted) state = mode;
     } catch (_) {
-      // Storage can be unavailable (private browsing, ...): keep following the system.
+      // Storage can be unavailable (private browsing, ...): keep the default (dark).
     }
   }
 

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/widgets/motion.dart';
 import '../../../core/widgets/state_views.dart';
 import '../../discounts/domain/discount_request.dart';
 import '../../notifications/presentation/notification_bell.dart';
@@ -77,8 +78,10 @@ class _AdminDiscountsScreenState extends ConsumerState<AdminDiscountsScreen> {
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
           itemCount: items.length,
           separatorBuilder: (_, _) => const SizedBox(height: 12),
-          itemBuilder: (_, i) =>
-              _RequestCard(request: items[i], onApprove: () => _approve(items[i]), onDecline: () => _decline(items[i])),
+          itemBuilder: (_, i) => Reveal(
+            index: i,
+            child: _RequestCard(request: items[i], onApprove: () => _approve(items[i]), onDecline: () => _decline(items[i])),
+          ),
         );
       },
     );

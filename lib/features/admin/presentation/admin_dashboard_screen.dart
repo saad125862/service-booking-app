@@ -80,15 +80,43 @@ class _Body extends StatelessWidget {
               spacing: 12,
               runSpacing: 12,
               children: [
-                _tile(width, StatCard(icon: Icons.today_outlined, label: 'Sales today', value: Formatters.price(data.today.revenue), note: '${data.today.bookings} bookings')),
-                _tile(width, StatCard(icon: Icons.calendar_view_month_outlined, label: 'This month', value: Formatters.price(data.thisMonth.revenue), note: '${data.thisMonth.bookings} bookings')),
-                _tile(width, StatCard(icon: Icons.account_balance_outlined, label: 'All time', value: Formatters.price(data.allTime.revenue), note: '${data.allTime.bookings} bookings')),
+                _tile(
+                  width,
+                  StatCard(
+                    icon: Icons.today_outlined,
+                    label: 'Sales today',
+                    value: Formatters.price(data.today.revenue),
+                    amount: data.today.revenue,
+                    note: '${data.today.bookings} bookings',
+                  ),
+                ),
+                _tile(
+                  width,
+                  StatCard(
+                    icon: Icons.calendar_view_month_outlined,
+                    label: 'This month',
+                    value: Formatters.price(data.thisMonth.revenue),
+                    amount: data.thisMonth.revenue,
+                    note: '${data.thisMonth.bookings} bookings',
+                  ),
+                ),
+                _tile(
+                  width,
+                  StatCard(
+                    icon: Icons.account_balance_outlined,
+                    label: 'All time',
+                    value: Formatters.price(data.allTime.revenue),
+                    amount: data.allTime.revenue,
+                    note: '${data.allTime.bookings} bookings',
+                  ),
+                ),
                 _tile(
                   width,
                   StatCard(
                     icon: Icons.hourglass_top_rounded,
                     label: 'Pending value',
                     value: Formatters.price(data.pipeline.revenue),
+                    amount: data.pipeline.revenue,
                     note: '${data.pipeline.bookings} awaiting confirmation',
                     onTap: () => context.go('/admin/bookings'),
                   ),
@@ -127,7 +155,9 @@ class _Body extends StatelessWidget {
                     if (data.pendingDiscountRequests > 0)
                       ActionChip(
                         avatar: const Icon(Icons.local_offer_outlined, size: 18),
-                        label: Text('${data.pendingDiscountRequests} discount request${data.pendingDiscountRequests == 1 ? '' : 's'}'),
+                        label: Text(
+                          '${data.pendingDiscountRequests} discount request${data.pendingDiscountRequests == 1 ? '' : 's'}',
+                        ),
                         onPressed: () => context.go('/admin/discounts'),
                       ),
                   ],
@@ -140,15 +170,22 @@ class _Body extends StatelessWidget {
           child: DailySalesChart(daily: data.daily),
         ),
         const SizedBox(height: 16),
-        _Section(title: 'Bookings by status', child: _StatusBreakdown(byStatus: data.byStatus)),
+        _Section(
+          title: 'Bookings by status',
+          child: _StatusBreakdown(byStatus: data.byStatus),
+        ),
         const SizedBox(height: 16),
         _Section(
           title: 'Top services by revenue',
           child: data.topServices.isEmpty
-              ? Text('Sales will appear here once bookings are confirmed.', style: TextStyle(color: scheme.onSurfaceVariant))
+              ? Text(
+                  'Sales will appear here once bookings are confirmed.',
+                  style: TextStyle(color: scheme.onSurfaceVariant),
+                )
               : HorizontalBars(
                   rows: [
-                    for (final t in data.topServices) (t.name, t.revenue, '${Formatters.price(t.revenue)} · ${t.bookings}×'),
+                    for (final t in data.topServices)
+                      (t.name, t.revenue, '${Formatters.price(t.revenue)} · ${t.bookings}×'),
                   ],
                 ),
         ),
@@ -163,7 +200,10 @@ class _Body extends StatelessWidget {
                     for (final a in data.recentBookings)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 10),
-                        child: AdminBookingCard(appointment: a, onTap: () => context.go('/admin/bookings/${a.id}', extra: a)),
+                        child: AdminBookingCard(
+                          appointment: a,
+                          onTap: () => context.go('/admin/bookings/${a.id}', extra: a),
+                        ),
                       ),
                   ],
                 ),
@@ -171,11 +211,17 @@ class _Body extends StatelessWidget {
         const SizedBox(height: 16),
         Row(
           children: [
-            Expanded(child: _MiniTotal(icon: Icons.people_outline, label: 'Customers', value: data.customers)),
+            Expanded(
+              child: _MiniTotal(icon: Icons.people_outline, label: 'Customers', value: data.customers),
+            ),
             const SizedBox(width: 12),
-            Expanded(child: _MiniTotal(icon: Icons.spa_outlined, label: 'Active services', value: data.services)),
+            Expanded(
+              child: _MiniTotal(icon: Icons.spa_outlined, label: 'Active services', value: data.services),
+            ),
             const SizedBox(width: 12),
-            Expanded(child: _MiniTotal(icon: Icons.event_available_outlined, label: 'All bookings', value: data.bookings)),
+            Expanded(
+              child: _MiniTotal(icon: Icons.event_available_outlined, label: 'All bookings', value: data.bookings),
+            ),
           ],
         ),
       ],
@@ -202,7 +248,12 @@ class _Section extends StatelessWidget {
           children: [
             Row(
               children: [
-                Expanded(child: Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800))),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+                  ),
+                ),
                 ?trailing,
               ],
             ),
@@ -242,7 +293,11 @@ class _StatusBreakdown extends StatelessWidget {
             child: Row(
               children: [
                 for (final (key, _, color) in _order)
-                  if ((byStatus[key] ?? 0) > 0) Expanded(flex: byStatus[key]!, child: Container(height: 12, color: color)),
+                  if ((byStatus[key] ?? 0) > 0)
+                    Expanded(
+                      flex: byStatus[key]!,
+                      child: Container(height: 12, color: color),
+                    ),
               ],
             ),
           ),
@@ -256,7 +311,11 @@ class _StatusBreakdown extends StatelessWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(width: 10, height: 10, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+                  Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                  ),
                   const SizedBox(width: 6),
                   Text('$label ${byStatus[key] ?? 0}', style: theme.textTheme.bodySmall),
                 ],
@@ -286,7 +345,11 @@ class _MiniTotal extends StatelessWidget {
             Icon(icon, color: theme.colorScheme.primary),
             const SizedBox(height: 6),
             Text('$value', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800)),
-            Text(label, textAlign: TextAlign.center, style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            ),
           ],
         ),
       ),

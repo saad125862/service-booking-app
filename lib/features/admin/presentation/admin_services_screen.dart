@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/network/api_exception.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/widgets/motion.dart';
 import '../../../core/widgets/state_views.dart';
 import '../../notifications/presentation/notification_bell.dart';
 import '../../shell/shell_scope.dart';
@@ -84,10 +85,15 @@ class _AdminServicesScreenState extends ConsumerState<AdminServicesScreen> {
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
           itemCount: items.length,
           separatorBuilder: (_, _) => const SizedBox(height: 10),
-          itemBuilder: (context, i) => _ServiceTile(
-            service: items[i],
-            onTap: () => context.go('/admin/services/${items[i].id}'),
-            onToggle: (v) => _toggle(items[i], v),
+          itemBuilder: (context, i) => Reveal(
+            index: i,
+            child: PressScale(
+              child: _ServiceTile(
+                service: items[i],
+                onTap: () => context.go('/admin/services/${items[i].id}'),
+                onToggle: (v) => _toggle(items[i], v),
+              ),
+            ),
           ),
         );
       },

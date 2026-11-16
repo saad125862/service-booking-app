@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/api_exception.dart';
+import '../../../core/widgets/motion.dart';
 import '../../../core/widgets/seba_logo.dart';
 import '../../../core/widgets/state_views.dart';
 import 'auth_controller.dart';
@@ -34,14 +35,27 @@ class SplashScreen extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const SebaLogo(size: 88),
+              TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0.8, end: 1),
+                duration: const Duration(milliseconds: 700),
+                curve: Curves.easeOutBack,
+                builder: (_, scale, child) => Transform.scale(scale: scale, child: child),
+                child: const Reveal(child: SebaLogo(size: 88)),
+              ),
               const SizedBox(height: 20),
-              Text(
-                'Seba',
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800),
+              Reveal(
+                index: 2,
+                child: Text(
+                  'Seba',
+                  style: Theme.of(context).textTheme.headlineMedium
+                      ?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.5),
+                ),
               ),
               const SizedBox(height: 28),
-              const SizedBox(height: 28, width: 28, child: CircularProgressIndicator(strokeWidth: 3)),
+              const Reveal(
+                index: 4,
+                child: SizedBox(height: 26, width: 26, child: CircularProgressIndicator(strokeWidth: 3)),
+              ),
             ],
           ),
         ),

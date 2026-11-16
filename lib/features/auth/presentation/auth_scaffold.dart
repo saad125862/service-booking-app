@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/widgets/motion.dart';
 import '../../../core/widgets/seba_logo.dart';
 
 /// Shared layout for login and register: centred, scrollable, max 440 wide so it
@@ -24,21 +25,27 @@ class AuthScaffold extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Align(child: SebaLogo(size: 72)),
+                  const Reveal(child: Align(child: SebaLogo(size: 72))),
                   const SizedBox(height: 24),
-                  Text(
-                    title,
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+                  Reveal(
+                    index: 1,
+                    child: Text(
+                      title,
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+                    ),
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    subtitle,
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                  Reveal(
+                    index: 2,
+                    child: Text(
+                      subtitle,
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                    ),
                   ),
                   const SizedBox(height: 28),
-                  child,
+                  Reveal(index: 3, child: child),
                 ],
               ),
             ),

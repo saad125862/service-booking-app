@@ -69,7 +69,7 @@ class _DetailsView extends StatelessWidget {
                     ),
                   ),
                 ),
-                flexibleSpace: FlexibleSpaceBar(background: ServiceImage(url: service.imageUrl)),
+                flexibleSpace: FlexibleSpaceBar(background: Hero(tag: 'service-img-${service.id}', child: ServiceImage(url: service.imageUrl))),
               ),
               SliverToBoxAdapter(
                 child: Padding(
